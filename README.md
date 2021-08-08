@@ -1,6 +1,6 @@
 # Video-Grinder
 
-Grinds Videos to h265 in a Plex Environment
+Grinds videos to h265 in a plex environment
 
 ![Borderlands: The Pre-Sequel - The Grinder in Concordia](https://static.wikia.nocookie.net/borderlands/images/1/10/GrinderPreSequel.jpg/revision/latest/scale-to-width-down/300?cb=20180222220705)
 
