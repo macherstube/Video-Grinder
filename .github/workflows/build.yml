@@ -36,14 +36,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-latest
-            TARGET: macos
-            CMD_BUILD: >
-                pyinstaller -F -w -n video-grinder_osx video-grinder.py &&
-                cd dist/ &&
-                zip -r9 video-grinder_osx video-grinder_osx.app/
-            OUT_FILE_NAME: video-grinder_osx.zip
-            ASSET_MIME: application/zip
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: pyinstaller -F -w -n video-grinder_windows video-grinder.py

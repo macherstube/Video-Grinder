@@ -62,6 +62,7 @@ Following functions are ideas that are not yet verified if they are possible:
 
 - Check video quality and verify playability
 - Sending reports of transcoding progress
+- recognize and crop black bars 
 
 Following functions won't be implemented in the current version:
 
