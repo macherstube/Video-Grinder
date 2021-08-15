@@ -15,4 +15,4 @@ import ffmpy
 class Transcoder:
 
     def __init__(self, config):
-        self.ready = False
+        self.ready = True

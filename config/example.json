@@ -2,5 +2,34 @@
   "MODE": "development",
   "X-Plex-Token": "123ABCabc",
   "Plex-Server": "http://plexserver:32400",
-  "transcoderCache": "/tmp/Video-Grinder/transcoderCache"
+  "plexLibraryUpdateInterval": 60,
+  "plexLibrarySections": ["Movies", "TV Series"],
+  "transcoderCache": "/tmp/Video-Grinder/transcoderCache",
+  "transcoderReady": {
+    "sys": {
+      "cpu": "< 75",
+      "memory": "< 75"
+    },
+    "plex": {
+      "PlayingSessions": -1,
+      "PlayingSessionsCount": -1,
+      "TranscodeSessions": -1,
+      "TranscodeSessionsCount": "<= 1",
+      "hostCpuUtilization": -1,
+      "hostMemoryUtilization": -1,
+      "processCpuUtilization": -1,
+      "processMemoryUtilization": -1
+    },
+    "fs": {
+      "transcoderCacheSize": "< 5e+11",
+      "transcoderCacheDiskTotal": -1,
+      "transcoderCacheDiskUsed": -1,
+      "transcoderCacheDiskFree": "> 2e+9"
+    },
+    "gpu": {
+      "load": "< 75",
+      "memoryUtil": "< 75",
+      "temperature": "< 75"
+    }
+  }
 }

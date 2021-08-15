@@ -116,18 +116,17 @@ class Ctrl:
                 # get an available monitor and check if it is ready for transcode
                 mo = self.get_monitor()
                 if mo:
-                    # print states for testing
-                    states = mo.get_states()
-                    print(states)
+                    if(self.config["MODE"] == "development"):
+                        print(mo.get_states())
+                        print(mo.get_movies())
 
-                    # TODO: check if states fit "ready to transcode"
-
-                # get an available transcoder and send task for transcoding
-                tr = self.get_transcoder()
-                if tr:
-                    # print object for testing
-                    print(tr)
-                    # TODO: send transcode job
+                    if(mo.ready_to_transcode()):
+                        # get an available transcoder and send task for transcoding
+                        tr = self.get_transcoder()
+                        if tr:
+                            # print object for testing
+                            print(tr)
+                            # TODO: send transcode job
 
                 if 0 == 1:
                     # TODO: check if queue is full and state is ready to move files and restart plex analysis
