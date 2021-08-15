@@ -104,6 +104,10 @@ class Ctrl:
                 # check if at least one transcoder exists
                 if len(self.transcoders) == 0 and not self.addingInProgress["transcoders"]:
                     self.add_transcoder()
+
+                # check if at least one organizer exists
+                if len(self.organizers) == 0 and not self.addingInProgress["organizers"]:
+                    self.add_organizer()
                 self.__state = CtrlStates.QUEUE
                 continue
 
@@ -113,7 +117,9 @@ class Ctrl:
                 mo = self.get_monitor()
                 if mo:
                     # print states for testing
-                    print(mo.get_states())
+                    states = mo.get_states()
+                    print(states)
+
                     # TODO: check if states fit "ready to transcode"
 
                 # get an available transcoder and send task for transcoding

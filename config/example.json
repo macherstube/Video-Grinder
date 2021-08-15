@@ -1,3 +1,6 @@
 {
-  "MODE": "development"
+  "MODE": "development",
+  "X-Plex-Token": "123ABCabc",
+  "Plex-Server": "http://plexserver:32400",
+  "transcoderCache": "/tmp/Video-Grinder/transcoderCache"
 }
