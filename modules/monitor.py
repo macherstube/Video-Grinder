@@ -11,11 +11,18 @@
 from datetime import datetime
 import psutil
 from plexapi.server import PlexServer
-from plexapi.media import Media
 import math
 from pathlib import Path
 import shutil
 import GPUtil
+import threading
+
+
+def threaded(fn):
+    def wrapper(*args, **kwargs):
+        threading.Thread(target=fn, args=args, kwargs=kwargs).start()
+
+    return wrapper
 
 
 def wMean(vs, r=0):
@@ -31,12 +38,14 @@ class Monitor:
     def __init__(self, config):
         self.config = config
         self.states = {"sys": {}, "plex": {}, "fs": {}, "gpu": {}}
-        self.plexLibrary = {"date": 0, "movies": []}
+        self.plexLibrary = {"date": 0, "files": []}
+        self.currentTranscoding = []
         self.ready = False
         self.plexSrv = PlexServer(self.config["Plex-Server"], self.config["X-Plex-Token"])
         self.failureReason = {}
         self.update_data()
 
+    @threaded
     def update_data(self):
         self.ready = False
         self.sys()
@@ -45,6 +54,18 @@ class Monitor:
         self.gpu()
         self.plexlibrary()
         self.ready = True
+
+    def set_current_transcoding(self, file):
+        self.currentTranscoding.append(file)
+
+    def remove_current_transcoding(self, file):
+        self.currentTranscoding.remove(file)
+
+    def queue_full(self):
+        return eval('self.states["fs"]["transcoderCacheSize"]' +
+                    self.config["transcoderReady"]["fs"]["transcoderCacheSize"]) \
+               or eval('self.states["fs"]["transcoderCacheDiskFree"]' +
+                        self.config["transcoderReady"]["fs"]["transcoderCacheDiskFree"])
 
     def ready_to_transcode(self):
         for counter in self.config["transcoderReady"]:
@@ -64,8 +85,8 @@ class Monitor:
     def get_states(self):
         return self.states
 
-    def get_movies(self):
-        return self.plexLibrary["movies"]
+    def get_files(self):
+        return [x for x in self.plexLibrary["files"] if x not in self.currentTranscoding]
 
     def sys(self):
         # gives a single float value
@@ -102,9 +123,9 @@ class Monitor:
         now = datetime.timestamp(datetime.now())
         if now > self.plexLibrary["date"] + self.config["plexLibraryUpdateInterval"]:
             print("update library")
-            self.plexLibrary["movies"] = []
+            self.plexLibrary["files"] = []
             for s in self.config["plexLibrarySections"]:
                 lib = self.plexSrv.library.section(s)
-                self.plexLibrary["movies"] = self.plexLibrary["movies"] + lib.all()
+                self.plexLibrary["files"] = self.plexLibrary["files"] + lib.all()
 
             self.plexLibrary["date"] = now

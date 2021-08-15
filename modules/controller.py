@@ -8,7 +8,6 @@
 # desc:   controlls the whole operation :)
 ##########################################################
 
-import threading
 import time
 from modules import monitor
 from modules import transcoder
@@ -23,12 +22,6 @@ class CtrlStates(Enum):
     ORGANIZE = auto()
 
 
-def threaded(fn):
-    def wrapper(*args, **kwargs):
-        threading.Thread(target=fn, args=args, kwargs=kwargs).start()
-    return wrapper
-
-
 class Ctrl:
     def __init__(self, config):
         self.config = config
@@ -38,7 +31,6 @@ class Ctrl:
         self.addingInProgress = {"monitors": False, "transcoders": False, "organizers": False}
         self.__state = CtrlStates.IDLE
 
-    @threaded
     def add_monitor(self):
         self.addingInProgress["monitors"] = True
         self.monitors.append(monitor.Monitor(self.config))
@@ -52,7 +44,6 @@ class Ctrl:
                 return mo
         return False
 
-    @threaded
     def add_transcoder(self):
         self.addingInProgress["transcoders"] = True
         self.transcoders.append(transcoder.Transcoder(self.config))
@@ -66,7 +57,6 @@ class Ctrl:
                 return tr
         return False
 
-    @threaded
     def add_organizer(self):
         self.addingInProgress["organizers"] = True
         self.monitors.append(organizer.Organizer(self.config))
@@ -118,19 +108,18 @@ class Ctrl:
                 if mo:
                     if(self.config["MODE"] == "development"):
                         print(mo.get_states())
-                        print(mo.get_movies())
+                        print(mo.get_files())
 
-                    if(mo.ready_to_transcode()):
+                    if len(mo.get_files()) > 0 and mo.ready_to_transcode():
                         # get an available transcoder and send task for transcoding
                         tr = self.get_transcoder()
                         if tr:
-                            # print object for testing
-                            print(tr)
-                            # TODO: send transcode job
+                            file = mo.get_files()[0]
+                            mo.set_current_transcoding(file)
+                            tr.transcode(file)
 
-                if 0 == 1:
-                    # TODO: check if queue is full and state is ready to move files and restart plex analysis
-                    self.__state = CtrlStates.ORGANIZE
+                    if mo.queue_full():
+                        self.__state = CtrlStates.ORGANIZE
                 else:
                     self.__state = CtrlStates.IDLE
                 continue
