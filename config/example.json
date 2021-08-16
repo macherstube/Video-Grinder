@@ -1,9 +1,21 @@
 {
   "MODE": "development",
+  "readonly": "False",
+  "runningSpeed": 0.1,
   "X-Plex-Token": "123ABCabc",
   "Plex-Server": "http://plexserver:32400",
+  "plexStatsUpdateInterval": 10,
   "plexLibraryUpdateInterval": 60,
   "plexLibrarySections": ["Movies", "TV Series"],
+  "plexLibraryFilesFilter": {"videoCodec": "!= 'hevc'"},
+  "plexServiceStartCommand": "sudo /bin/systemctl start teamviewerd",
+  "plexServiceStopCommand": "sudo /bin/systemctl stop teamviewerd",
+  "plexAnalyzeTimeWindow": {"start": [0,0], "end": [23,59]},
+  "targetCodec": "hevc_nvenc",
+  "targetSettings" : "-preset fast -rc vbr -cq 24 -qmin 24 -qmax 24",
+  "targetContainer": "mkv",
+  "transcoderCount": 3,
+  "transcoderHWaccel": "cuda",
   "transcoderCache": "/tmp/Video-Grinder/transcoderCache",
   "transcoderReady": {
     "sys": {
@@ -24,12 +36,17 @@
       "transcoderCacheSize": "< 5e+11",
       "transcoderCacheDiskTotal": -1,
       "transcoderCacheDiskUsed": -1,
-      "transcoderCacheDiskFree": "> 2e+9"
+      "transcoderCacheDiskFree": "> 1e+10"
     },
     "gpu": {
       "load": "< 75",
       "memoryUtil": "< 75",
-      "temperature": "< 75"
+      "temperature": "< 90"
+    }
+  },
+  "organizerReady": {
+    "plex": {
+      "PlayingSessionsCount": ">= 0"
     }
   }
 }
