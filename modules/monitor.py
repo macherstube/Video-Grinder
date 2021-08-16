@@ -39,7 +39,10 @@ class Monitor:
         self.config = config
         self.states = {"sys": {}, "plex": {}, "fs": {}, "gpu": {}}
         self.plexLibrary = {"date": 0, "files": []}
+        self.plexStats = {"date": 0}
         self.currentTranscoding = []
+        self.successfullyTranscoded = []
+        self.failedToTranscode = []
         self.ready = False
         self.plexSrv = PlexServer(self.config["Plex-Server"], self.config["X-Plex-Token"])
         self.failureReason = {}
@@ -55,16 +58,25 @@ class Monitor:
         self.plexlibrary()
         self.ready = True
 
+    def set_failed_to_transcode(self, file):
+        self.failedToTranscode.append(file)
+
+    def set_successfully_transcoded(self, file):
+        self.successfullyTranscoded.append(file)
+
     def set_current_transcoding(self, file):
         self.currentTranscoding.append(file)
 
     def remove_current_transcoding(self, file):
-        self.currentTranscoding.remove(file)
+        try:
+            self.currentTranscoding.remove(file)
+        except ValueError as e:
+            pass
 
     def queue_full(self):
-        return eval('self.states["fs"]["transcoderCacheSize"]' +
+        return not eval('self.states["fs"]["transcoderCacheSize"]' +
                     self.config["transcoderReady"]["fs"]["transcoderCacheSize"]) \
-               or eval('self.states["fs"]["transcoderCacheDiskFree"]' +
+               or not eval('self.states["fs"]["transcoderCacheDiskFree"]' +
                         self.config["transcoderReady"]["fs"]["transcoderCacheDiskFree"])
 
     def ready_to_transcode(self):
@@ -76,7 +88,22 @@ class Monitor:
                             "counter": counter,
                             "value": value,
                             "must": self.config["transcoderReady"][counter][value],
-                            "have": self.states[counter][value]
+                            "is": self.states[counter][value]
+                        }
+                        return False
+        self.failureReason = {}
+        return True
+
+    def ready_to_organize(self):
+        for counter in self.config["organizerReady"]:
+            for value in self.config["organizerReady"][counter]:
+                if self.config["organizerReady"][counter][value] != -1:
+                    if not eval("self.states[counter][value]" + self.config["organizerReady"][counter][value]):
+                        self.failureReason = {
+                            "counter": counter,
+                            "value": value,
+                            "must": self.config["organizerReady"][counter][value],
+                            "is": self.states[counter][value]
                         }
                         return False
         self.failureReason = {}
@@ -86,7 +113,21 @@ class Monitor:
         return self.states
 
     def get_files(self):
-        return [x for x in self.plexLibrary["files"] if x not in self.currentTranscoding]
+        files = []
+        for file in self.plexLibrary["files"]:
+            if file not in self.currentTranscoding \
+                    and file not in self.successfullyTranscoded \
+                    and file not in self.failedToTranscode:
+                if len(self.config["plexLibraryFilesFilter"]) != 0:
+                    ok = True
+                    for f in self.config["plexLibraryFilesFilter"]:
+                        if not eval("file.media[0]." + f + " " + self.config["plexLibraryFilesFilter"][f]):
+                            ok = False
+                    if ok:
+                        files.append(file)
+                else:
+                    files.append(file)
+        return files
 
     def sys(self):
         # gives a single float value
@@ -96,15 +137,18 @@ class Monitor:
         self.states["sys"]["memory"] = psutil.virtual_memory().percent
 
     def plexsessions(self):
-        resources = self.plexSrv.resources()
-        self.states["plex"]["PlayingSessions"] = self.plexSrv.sessions()
-        self.states["plex"]["PlayingSessionsCount"] = len(self.plexSrv.sessions())
-        self.states["plex"]["TranscodeSessions"] = self.plexSrv.transcodeSessions()
-        self.states["plex"]["TranscodeSessionsCount"] = len(self.plexSrv.transcodeSessions())
-        self.states["plex"]["hostCpuUtilization"] = wMean([r.hostCpuUtilization for r in resources])
-        self.states["plex"]["hostMemoryUtilization"] = wMean([r.hostMemoryUtilization for r in resources])
-        self.states["plex"]["processCpuUtilization"] = wMean([r.processCpuUtilization for r in resources])
-        self.states["plex"]["processMemoryUtilization"] = wMean([r.processMemoryUtilization for r in resources])
+        now = datetime.timestamp(datetime.now())
+        if now > self.plexStats["date"] + self.config["plexStatsUpdateInterval"]:
+            resources = self.plexSrv.resources()
+            self.states["plex"]["PlayingSessions"] = self.plexSrv.sessions()
+            self.states["plex"]["PlayingSessionsCount"] = len(self.plexSrv.sessions())
+            self.states["plex"]["TranscodeSessions"] = self.plexSrv.transcodeSessions()
+            self.states["plex"]["TranscodeSessionsCount"] = len(self.plexSrv.transcodeSessions())
+            self.states["plex"]["hostCpuUtilization"] = wMean([r.hostCpuUtilization for r in resources])
+            self.states["plex"]["hostMemoryUtilization"] = wMean([r.hostMemoryUtilization for r in resources])
+            self.states["plex"]["processCpuUtilization"] = wMean([r.processCpuUtilization for r in resources])
+            self.states["plex"]["processMemoryUtilization"] = wMean([r.processMemoryUtilization for r in resources])
+            self.plexStats["date"] = now
 
     def fs(self):
         self.states["fs"]["transcoderCacheSize"] = sum(
@@ -122,10 +166,14 @@ class Monitor:
     def plexlibrary(self):
         now = datetime.timestamp(datetime.now())
         if now > self.plexLibrary["date"] + self.config["plexLibraryUpdateInterval"]:
-            print("update library")
+            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
+                print("Start updating library")
             self.plexLibrary["files"] = []
             for s in self.config["plexLibrarySections"]:
                 lib = self.plexSrv.library.section(s)
                 self.plexLibrary["files"] = self.plexLibrary["files"] + lib.all()
 
             self.plexLibrary["date"] = now
+            self.failedToTranscode = []
+            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
+                print("Done updating library")
