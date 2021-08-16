@@ -7,7 +7,7 @@
 # date:   13.08.2021
 # desc:   organize transcoded and current media
 ##########################################################
-
+import sqlite3
 import time as teatime
 from datetime import datetime, time
 import os
@@ -41,6 +41,7 @@ class Organizer:
         self.config = config
         self.createTranscoderCache()
         self.plexSrv = None
+        self.dbconn = None
         self.setup_plexapi()
         self.organizedFiles = []
         self.plexStatus = 1
@@ -107,6 +108,8 @@ class Organizer:
     def organize(self, files):
         self.ready = False
         changedfile = False
+        self.dbconn = sqlite3.connect(self.config["plexDB"])
+        dbcur = self.dbconn.cursor()
 
         if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
             print("Start organizing files.")
@@ -126,13 +129,22 @@ class Organizer:
                         if self.config["readonly"] == "False":
                             self.stopPlex()
                             changedfile = True
+                            #update filepath
+                            dbcur.execute("UPDATE media_parts SET file = \""
+                                          + str(Path(f.locations[0]).parent.joinpath(Path(tf).name))
+                                          + "\" WHERE file = \"" + f.locations[0] + "\";")
                             os.remove(f.locations[0])
                     self.set_organized_file(f)
             if self.config["readonly"] == "False":
                 if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
                     print("Delete orphan files and folder: ", tf)
                 shutil.rmtree(Path(tf).parent)
+        if changedfile:
+            self.dbconn.commit()
+        self.dbconn.close()
+
         self.startPlex()
+
         if changedfile:
             self.updatePlexLibaray()
             if self.ready_to_analyze():
