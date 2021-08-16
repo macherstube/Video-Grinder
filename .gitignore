@@ -2,6 +2,7 @@
 tmp/
 config/*
 !config/example.json
+!config/example_windows.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
