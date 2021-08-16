@@ -138,20 +138,22 @@ class Organizer:
         teatime.sleep(10)
 
         # here we gotta clean up again
-        changedfile = False
-        for file in self.oldFiles:
-            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                print("Delete old file: ", Path(file))
-            if self.config["readonly"] == "False":
-                self.stopPlex()
-                changedfile = True
-                os.remove(file)
+        if len(self.oldFiles) > 0:
+            changedfile = False
+            for file in self.oldFiles:
+                if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
+                    print("Delete old file: ", Path(file))
+                if self.config["readonly"] == "False":
+                    self.stopPlex()
+                    changedfile = True
+                    os.remove(file)
+                    self.oldFiles.remove(file)
 
-        self.startPlex()
-        if changedfile:
-            self.updatePlexLibaray()
-            if self.ready_to_analyze():
-                self.analyzePlexLibrary()
+            self.startPlex()
+            if changedfile:
+                self.updatePlexLibaray()
+                if self.ready_to_analyze():
+                    self.analyzePlexLibrary()
 
         if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
             print("End organizing files.")
