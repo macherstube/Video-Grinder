@@ -158,10 +158,16 @@ class Monitor:
         self.states["fs"]["transcoderCacheDiskFree"], = shutil.disk_usage(self.config["transcoderCache"])
 
     def gpu(self):
-        gpu = GPUtil.getGPUs()[0]
-        self.states["gpu"]["load"] = gpu.load * 100
-        self.states["gpu"]["memoryUtil"] = gpu.memoryUtil * 100
-        self.states["gpu"]["temperature"] = gpu.temperature
+        gpus = GPUtil.getGPUs()
+        if len(gpus) > 0:
+            gpu = gpus[0]
+            self.states["gpu"]["load"] = gpu.load * 100
+            self.states["gpu"]["memoryUtil"] = gpu.memoryUtil * 100
+            self.states["gpu"]["temperature"] = gpu.temperature
+        else:
+            self.states["gpu"]["load"] = 0
+            self.states["gpu"]["memoryUtil"] = 0
+            self.states["gpu"]["temperature"] = 0
 
     def plexlibrary(self):
         now = datetime.timestamp(datetime.now())
