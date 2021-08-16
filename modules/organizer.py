@@ -4,9 +4,10 @@
 ##########################################################
 # title:  organizer.py
 # author: Josias Bruderer
-# date:   13.08.2021
+# date:   16.08.2021
 # desc:   organize transcoded and current media
 ##########################################################
+
 import sqlite3
 import time as teatime
 from datetime import datetime, time

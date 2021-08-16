@@ -6,7 +6,7 @@
   "Plex-Server": "http://plexserver:32400",
   "plexStatsUpdateInterval": 10,
   "plexLibraryUpdateInterval": 60,
-  "plexDB": "~/Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db",
+  "plexDB": "/home/USERNAME/Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db",
   "plexLibrarySections": ["Movies", "TV Series"],
   "plexLibraryFilesFilter": {"videoCodec": "!= 'hevc'"},
   "plexServiceStartCommand": "sudo /bin/systemctl start PlexMediaServer",

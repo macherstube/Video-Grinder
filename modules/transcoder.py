@@ -4,9 +4,10 @@
 ##########################################################
 # title:  transcoder.py
 # author: Josias Bruderer
-# date:   13.08.2021
+# date:   16.08.2021
 # desc:   transcodes files using ffmpeg :)
 ##########################################################
+
 import shutil
 import subprocess
 import threading

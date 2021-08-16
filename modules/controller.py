@@ -4,13 +4,12 @@
 ##########################################################
 # title:  controller.py
 # author: Josias Bruderer
-# date:   13.08.2021
-# desc:   controlls the whole operation :)
+# date:   16.08.2021
+# desc:   controls the whole operation :)
 ##########################################################
 
 import time
 import warnings
-
 from modules import monitor
 from modules import transcoder
 from modules import organizer
