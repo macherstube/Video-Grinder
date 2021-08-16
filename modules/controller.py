@@ -47,6 +47,20 @@ class Ctrl:
                 return mo
         return False
 
+    def get_monitors(self):
+        mos = []
+        for mo in self.monitors:
+            if mo.ready:
+                mos.append(mo)
+        return mos
+
+    def get_sleeping_monitors(self):
+        mos = []
+        for mo in self.monitors:
+            if mo.sleeping:
+                mos.append(mo)
+        return mos
+
     def add_transcoder(self):
         self.addingInProgress["transcoders"] = True
         self.transcoders.append(transcoder.Transcoder(self.config))
@@ -97,6 +111,18 @@ class Ctrl:
             # Here the state machine happens
             if self.__state == CtrlStates.IDLE:
                 """STATE: IDLE"""
+                organizing = False
+                for org in self.get_busy_organizers():
+                    if org.organizing == True:
+                        organizing = True
+                if organizing:
+                    # set monitors to sleep
+                    for mo in self.get_monitors():
+                        mo.sleep()
+                else:
+                    # set monitors to sleep
+                    for mo in self.get_sleeping_monitors():
+                        mo.wakeup()
                 if self.get_monitor():
                     self.get_monitor().update_data()
                 self.__state = CtrlStates.SELFCHECK

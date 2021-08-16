@@ -29,7 +29,7 @@ try:
     if len(sys.argv) > 1:
         config_file = sys.argv[1]
     else:
-        config_file = 'config/default.json'
+        config_file = r"config/default.json"
 
     # load sentry for crash analytics
     sentryconfig = Path(config_file).parent.joinpath("sentry.txt")

@@ -40,10 +40,18 @@ class Organizer:
         self.ready = False
         self.config = config
         self.createTranscoderCache()
-        self.plexSrv = PlexServer(self.config["Plex-Server"], self.config["X-Plex-Token"])
+        self.plexSrv = None
+        self.setup_plexapi()
         self.organizedFiles = []
         self.plexStatus = 1
         self.ready = True
+        self.organizing = False
+
+    def setup_plexapi(self):
+        self.plexSrv = PlexServer(self.config["Plex-Server"], self.config["X-Plex-Token"])
+
+    def destroy_plexapi(self):
+        self.plexSrv = None
 
     def set_organized_file(self, file):
         self.organizedFiles.append(file)
@@ -55,6 +63,9 @@ class Organizer:
         if self.plexStatus == 1:
             if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
                 print("Run Stop Command for PlexService")
+            self.destroy_plexapi()
+            #send all monitors to sleep to disconnect plexServerConnection
+            self.organizing = True
             os.system(self.config["plexServiceStopCommand"])
             self.plexStatus = 0
 
@@ -65,6 +76,9 @@ class Organizer:
             teatime.sleep(5)
             os.system(self.config["plexServiceStartCommand"])
             teatime.sleep(5)
+            self.setup_plexapi()
+            #wake up all monitors
+            self.organizing = False
             self.plexStatus = 1
 
     def transcodedFiles(self):

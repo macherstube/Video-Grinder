@@ -12,7 +12,6 @@ import subprocess
 import threading
 from ffmpy import FFmpeg, FFRuntimeError
 from pathlib import Path
-import os
 
 
 def threaded(fn):

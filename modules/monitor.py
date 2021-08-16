@@ -30,6 +30,8 @@ def wMean(vs, r=0):
     s = 0
     if len(vs) > 0:
         for i, v in enumerate(vs):
+            if not v:
+                v = 0
             s = s + (int(v) ** 2) * (i + 1)
     else:
         return 0
@@ -47,9 +49,27 @@ class Monitor:
         self.successfullyTranscoded = []
         self.failedToTranscode = []
         self.ready = False
-        self.plexSrv = PlexServer(self.config["Plex-Server"], self.config["X-Plex-Token"])
+        self.sleeping = False
+        self.plexSrv = None
+        self.setup_plexapi()
         self.failureReason = {}
         self.update_data()
+
+    def setup_plexapi(self):
+        self.plexSrv = PlexServer(self.config["Plex-Server"], self.config["X-Plex-Token"])
+
+    def destroy_plexapi(self):
+        self.plexSrv = None
+
+    def sleep(self):
+        self.ready = False
+        self.sleeping = True
+        self.destroy_plexapi()
+
+    def wakeup(self):
+        self.setup_plexapi()
+        self.sleeping = False
+        self.ready = True
 
     @threaded
     def update_data(self):
