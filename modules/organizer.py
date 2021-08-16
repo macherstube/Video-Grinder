@@ -43,6 +43,7 @@ class Organizer:
         self.plexSrv = None
         self.setup_plexapi()
         self.organizedFiles = []
+        self.oldFiles = []
         self.plexStatus = 1
         self.ready = True
         self.organizing = False
@@ -64,6 +65,7 @@ class Organizer:
             if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
                 print("Run Stop Command for PlexService")
             self.destroy_plexapi()
+            teatime.sleep(5)
             #send all monitors to sleep to disconnect plexServerConnection
             self.organizing = True
             os.system(self.config["plexServiceStopCommand"])
@@ -73,7 +75,6 @@ class Organizer:
         if self.plexStatus == 0:
             if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
                 print("Run Start Command for PlexService")
-            teatime.sleep(5)
             os.system(self.config["plexServiceStartCommand"])
             teatime.sleep(5)
             self.setup_plexapi()
@@ -115,19 +116,14 @@ class Organizer:
             for f in files:
                 if str(f.ratingKey) == Path(tf).parent.name:
                     if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                        if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                            print("Move ", tf, "to", Path(f.locations[0]).parent.joinpath(Path(tf).name))
-                        if self.config["readonly"] == "False":
-                            self.stopPlex()
-                            changedfile = True
-                            shutil.move(tf, Path(f.locations[0]).parent.joinpath(Path(tf).name))
-                        if Path(f.locations[0]).name != Path(tf).name:
-                            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                                print("Delete old file: ", Path(f.locations[0]))
-                            if self.config["readonly"] == "False":
-                                self.stopPlex()
-                                changedfile = True
-                                os.remove(f.locations[0])
+                        print("Move ", tf, "to", Path(f.locations[0]).parent.joinpath(Path(tf).name))
+                    if self.config["readonly"] == "False":
+                        self.stopPlex()
+                        changedfile = True
+                        shutil.move(tf, Path(f.locations[0]).parent.joinpath(Path(tf).name))
+                    if Path(f.locations[0]).name != Path(tf).name:
+                        # add to something like a delete queue
+                        self.oldFiles.append(f.locations[0])
                     self.set_organized_file(f)
             if self.config["readonly"] == "False":
                 if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
@@ -138,6 +134,25 @@ class Organizer:
             self.updatePlexLibaray()
             if self.ready_to_analyze():
                 self.analyzePlexLibrary()
+
+        teatime.sleep(10)
+
+        # here we gotta clean up again
+        changedfile = False
+        for file in self.oldFiles:
+            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
+                print("Delete old file: ", Path(file))
+            if self.config["readonly"] == "False":
+                self.stopPlex()
+                changedfile = True
+                os.remove(file)
+
+        self.startPlex()
+        if changedfile:
+            self.updatePlexLibaray()
+            if self.ready_to_analyze():
+                self.analyzePlexLibrary()
+
         if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
             print("End organizing files.")
         self.ready = True
