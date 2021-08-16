@@ -28,8 +28,11 @@ def threaded(fn):
 def wMean(vs, r=0):
     """get a weighted mean of an array: values with higher index as well as higher values counts more (exponential)"""
     s = 0
-    for i, v in enumerate(vs):
-        s = s + (int(v) ** 2) * (i + 1)
+    if len(vs) > 0:
+        for i, v in enumerate(vs):
+            s = s + (int(v) ** 2) * (i + 1)
+    else:
+        return 0
     return round(math.sqrt(s / int(len(vs) * (len(vs) + 1) / 2)), r)
 
 
