@@ -42,7 +42,7 @@ class Transcoder:
             return
         cacheDir = Path(self.config["transcoderCache"]).joinpath(str(file.ratingKey))
         cacheDir.mkdir(parents=True, exist_ok=True)
-        cachePath = cacheDir.joinpath(str(path.stem) + "_h265." + self.config["targetContainer"])
+        cachePath = cacheDir.joinpath(str(path.stem) + "." + self.config["targetContainer"])
         hwaccel = str("-hwaccel " + self.config["transcoderHWaccel"]) if self.config["transcoderHWaccel"] != "False" else ""
         ff = FFmpeg(
             inputs={str(path): str("-y " + hwaccel)},
