@@ -163,12 +163,14 @@ class Organizer:
                 for f in self.deleteQueue:
                     logging.info("organizer: delete old file: " + f)
                     os.remove(f)
-                    self.deleteQueue.remove(f)         #WIP: check what happens when file is moved or something
+                    self.deleteQueue.remove(f)
+            except FileNotFoundError as e:
+                logging.warning("organizer: tried to delete file but not existing anymore: " + f)
             except Exception as e:
                 # If something bad happend while commiting db or filesystem we gotta shut down everything
                 # and manually check the logs and do fixing stuff.
                 # This is to make sure no ugly stuff happens with our library.
-                logging.critical("organizer: we have a problem - like really.!")
+                logging.critical("organizer: we have a problem - like really.!: " + e + " " + e.characters_written)
                 os._exit(1)
                 return
         self.dbconn.close()
