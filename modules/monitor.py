@@ -4,10 +4,11 @@
 ##########################################################
 # title:  monitor.py
 # author: Josias Bruderer
-# date:   16.08.2021
+# date:   17.08.2021
 # desc:   monitors the whole operation :)
 ##########################################################
 
+import logging
 from datetime import datetime
 import psutil
 from plexapi.server import PlexServer
@@ -48,11 +49,11 @@ class Monitor:
         self.currentTranscoding = []
         self.successfullyTranscoded = []
         self.failedToTranscode = []
+        self.failureReason = {}
         self.ready = False
         self.sleeping = False
         self.plexSrv = None
         self.setup_plexapi()
-        self.failureReason = {}
         self.update_data()
 
     def setup_plexapi(self):
@@ -73,12 +74,14 @@ class Monitor:
 
     @threaded
     def update_data(self):
+        # set readiness to False to avoid conflicts
         self.ready = False
         self.sys()
-        self.plexsessions()
+        self.plex()
         self.fs()
         self.gpu()
         self.plexlibrary()
+        # set readiness to True because all is done
         self.ready = True
 
     def set_failed_to_transcode(self, file):
@@ -94,6 +97,7 @@ class Monitor:
         try:
             self.currentTranscoding.remove(file)
         except ValueError as e:
+            logging.warning("monitor: tried to remove file from current transcoding but this failed: " + str(file))
             pass
 
     def queue_full(self):
@@ -103,6 +107,7 @@ class Monitor:
                         self.config["transcoderReady"]["fs"]["transcoderCacheDiskFree"])
 
     def ready_to_transcode(self):
+        # loop through the config and crosscheck with current state
         for counter in self.config["transcoderReady"]:
             for value in self.config["transcoderReady"][counter]:
                 if self.config["transcoderReady"][counter][value] != -1:
@@ -118,6 +123,7 @@ class Monitor:
         return True
 
     def ready_to_organize(self):
+        # loop through the config and crosscheck with current state
         for counter in self.config["organizerReady"]:
             for value in self.config["organizerReady"][counter]:
                 if self.config["organizerReady"][counter][value] != -1:
@@ -138,11 +144,14 @@ class Monitor:
     def get_files(self):
         files = []
         for file in self.plexLibrary["files"]:
+            # check if file is neither currently transcoding nor already processed
             if file not in self.currentTranscoding \
                     and file not in self.successfullyTranscoded \
                     and file not in self.failedToTranscode:
+                # check if a filter is configured
                 if len(self.config["plexLibraryFilesFilter"]) != 0:
                     ok = True
+                    # loop through all filters and check if they apply to the file
                     for f in self.config["plexLibraryFilesFilter"]:
                         if not eval("file.media[0]." + f + " " + self.config["plexLibraryFilesFilter"][f]):
                             ok = False
@@ -153,13 +162,13 @@ class Monitor:
         return files
 
     def sys(self):
-        # gives a single float value
+        # ready system parameters
         self.states["sys"]["cpu"] = psutil.cpu_percent()
-
-        # gives an object with many fields
         self.states["sys"]["memory"] = psutil.virtual_memory().percent
+        self.states["sys"]["datetime"] = datetime.now()
 
-    def plexsessions(self):
+    def plex(self):
+        # read plex parameters: do only update these values after specific delay (defined in config)
         now = datetime.timestamp(datetime.now())
         if now > self.plexStats["date"] + self.config["plexStatsUpdateInterval"]:
             resources = self.plexSrv.resources()
@@ -174,6 +183,7 @@ class Monitor:
             self.plexStats["date"] = now
 
     def fs(self):
+        # read filesystem parameters
         self.states["fs"]["transcoderCacheSize"] = sum(
             f.stat().st_size for f in Path(self.config["transcoderCache"]).glob('**/*') if f.is_file())
         self.states["fs"]["transcoderCacheDiskTotal"], \
@@ -181,6 +191,7 @@ class Monitor:
         self.states["fs"]["transcoderCacheDiskFree"], = shutil.disk_usage(self.config["transcoderCache"])
 
     def gpu(self):
+        # read gpu parameters if any gpu is found
         gpus = GPUtil.getGPUs()
         if len(gpus) > 0:
             gpu = gpus[0]
@@ -193,16 +204,17 @@ class Monitor:
             self.states["gpu"]["temperature"] = 0
 
     def plexlibrary(self):
+        # update local copy of plexlibrary after specific delay (defined in config)
         now = datetime.timestamp(datetime.now())
         if now > self.plexLibrary["date"] + self.config["plexLibraryUpdateInterval"]:
-            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                print("Start updating library")
+            logging.info("monitor: library update started")
             self.plexLibrary["files"] = []
+            # get files of everry section
             for s in self.config["plexLibrarySections"]:
                 lib = self.plexSrv.library.section(s)
                 self.plexLibrary["files"] = self.plexLibrary["files"] + lib.all()
 
             self.plexLibrary["date"] = now
+            # reset failed transcoded files: plex data is quite up to date and therefore stuff could have changed
             self.failedToTranscode = []
-            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                print("Done updating library")
+            logging.info("monitor: library update ended")

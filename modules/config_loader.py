@@ -21,19 +21,14 @@ class Cfg:
         self.init()
 
     def init(self):
-        try:
-            path = Path(self.cfg_file)
-            if path.is_file():
-                with open(path) as config_file:
-                    self.config = json.load(config_file)
+        path = Path(self.cfg_file)
+        if path.is_file():
+            with open(path) as config_file:
+                self.config = json.load(config_file)
 
-            if len(self.config) == 0:
-                raise ValueError("Config file missing or invalid: " + str(path.absolute()))
+        if len(self.config) == 0:
+            raise ValueError("Config file missing or invalid: " + str(path.absolute()))
 
-            for m in self.mandatory:
-                if m not in self.config or len(self.config[m]) == 0:
-                    raise ValueError("Config file invalid: " + m + " not found or empty in" + str(path.absolute()))
-
-        except Exception as e:
-            print("Unexpected error: ", sys.exc_info()[0])
-            raise
+        for m in self.mandatory:
+            if m not in self.config or len(self.config[m]) == 0:
+                raise ValueError("Config file invalid: " + m + " not found or empty in" + str(path.absolute()))

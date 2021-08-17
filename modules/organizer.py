@@ -8,6 +8,7 @@
 # desc:   organize transcoded and current media
 ##########################################################
 
+import logging
 import sqlite3
 import time as teatime
 from datetime import datetime, time
@@ -38,6 +39,7 @@ def is_time_between(begin_time, end_time, check_time=None):
 class Organizer:
 
     def __init__(self, config):
+        # set readiness to False to avoid conflicts
         self.ready = False
         self.config = config
         self.createTranscoderCache()
@@ -45,7 +47,9 @@ class Organizer:
         self.dbconn = None
         self.setup_plexapi()
         self.organizedFiles = []
+        self.deleteQueue = []
         self.plexStatus = 1
+        # set readiness to True because all is done
         self.ready = True
         self.organizing = False
 
@@ -63,23 +67,23 @@ class Organizer:
 
     def stopPlex(self):
         if self.plexStatus == 1:
-            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                print("Run Stop Command for PlexService")
+            logging.info("organizer: run stop command for PlexService")
+            # close plexapi connection
             self.destroy_plexapi()
-            #send all monitors to sleep to disconnect plexServerConnection
             self.organizing = True
+            # stop plex servicce
             os.system(self.config["plexServiceStopCommand"])
             teatime.sleep(5)
             self.plexStatus = 0
 
     def startPlex(self):
         if self.plexStatus == 0:
-            if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                print("Run Start Command for PlexService")
+            logging.info("organizer: run start command for PlexService")
+            # start plex servicce
             os.system(self.config["plexServiceStartCommand"])
             teatime.sleep(5)
+            # start plexapi connection
             self.setup_plexapi()
-            #wake up all monitors
             self.organizing = False
             self.plexStatus = 1
 
@@ -112,44 +116,69 @@ class Organizer:
         self.dbconn = sqlite3.connect(self.config["plexDB"])
         dbcur = self.dbconn.cursor()
 
-        if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-            print("Start organizing files.")
+        logging.info("organizer: start organizing files")
 
+        # loop trough files currently present in transcoder cache (filesystem)
         for tf in self.transcodedFiles():
+            # loop through files currently present in transcoder successfully history (monitor)
             for f in files:
+                # if file exists on filesystem and in transcoder successfully history
                 if str(f.ratingKey) == Path(tf).parent.name:
                     if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                        print("Move ", tf, "to", Path(f.locations[0]).parent.joinpath(Path(tf).name))
+                        logging.info("organizer: move " + tf + " to "
+                                     + str(Path(f.locations[0]).parent.joinpath(Path(tf).name)))
+                    # do only move files if not readonly mode
                     if self.config["readonly"] == "False":
-                        self.stopPlex()
-                        changedfile = True
+                        self.stopPlex()             # make sure plex service is not running
+                        changedfile = True          # this will cause a db update (commit)
                         shutil.move(tf, Path(f.locations[0]).parent.joinpath(Path(tf).name))
+                    # if the filepath has changed we need to take care of that within filesystem and plex database
                     if Path(f.locations[0]).name != Path(tf).name:
-                        if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                            print("Delete old file: ", Path(f.locations[0]))
                         if self.config["readonly"] == "False":
-                            self.stopPlex()
-                            changedfile = True
-                            #update filepath
-                            dbcur.execute("UPDATE media_parts SET file = \""
-                                          + str(Path(f.locations[0]).parent.joinpath(Path(tf).name))
-                                          + "\" WHERE file = \"" + f.locations[0] + "\";")
-                            os.remove(f.locations[0])
+                            self.stopPlex()         # make sure plex service is not running
+                            changedfile = True      # this will cause a db update (commit)
+
+                            # update filepath in db
+                            updateStr = "UPDATE media_parts SET file = \"" \
+                                        + str(Path(f.locations[0]).parent.joinpath(Path(tf).name)) \
+                                        + "\" WHERE media_item_id = " + str(f.ratingKey) + ";"
+                            logging.debug("organizer: update db: " + updateStr)
+                            dbcur.execute(updateStr)
+                            if dbcur.rowcount != 1:
+                                logging.warning("organizer: dbupdate could be invalid, recived " + str(dbcur.rowcount)
+                                                + " and not 1 rowcount for file: " + str(f) + " "
+                                                + str(Path(f.locations[0]).parent.joinpath(Path(tf).name)))
+
+                            # mark path to be deleted (that will happen after db commit)
+                            self.deleteQueue.append(f.locations[0])
                     self.set_organized_file(f)
+            # delete file and folders that were not organized: this will remove old folders and orphan files
             if self.config["readonly"] == "False":
-                if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                    print("Delete orphan files and folder: ", tf)
+                logging.info("organizer: delete orphan files and folder: " + tf)
                 shutil.rmtree(Path(tf).parent)
         if changedfile:
-            self.dbconn.commit()
+            try:
+                logging.info("organizer: commit plex db update")
+                self.dbconn.commit()
+                for f in self.deleteQueue:
+                    logging.info("organizer: delete old file: " + f)
+                    os.remove(f)
+                    self.deleteQueue.remove(f)         #WIP: check what happens when file is moved or something
+            except Exception as e:
+                # If something bad happend while commiting db or filesystem we gotta shut down everything
+                # and manually check the logs and do fixing stuff.
+                # This is to make sure no ugly stuff happens with our library.
+                logging.critical("organizer: we have a problem - like really.!")
+                os._exit(1)
+                return
         self.dbconn.close()
 
-        self.startPlex()
+        self.startPlex()                    # make sure plex starts again
 
         if changedfile:
+            # update and analyze library after changes are made
             self.updatePlexLibaray()
             if self.ready_to_analyze():
                 self.analyzePlexLibrary()
-        if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-            print("End organizing files.")
+        logging.info("organizer: end organizing files.")
         self.ready = True

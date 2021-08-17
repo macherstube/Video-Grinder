@@ -4,12 +4,11 @@
 ##########################################################
 # title:  sentry.py
 # author: Josias Bruderer
-# date:   29.07.2021
+# date:   17.08.2021
 # desc:   simple implementation of sentry
 ##########################################################
 
 import sentry_sdk
-from sentry_sdk import capture_exception
 
 
 def sentry_init(url):

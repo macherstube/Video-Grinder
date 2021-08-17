@@ -1,5 +1,7 @@
 {
   "MODE": "development",
+  "logLevel": "DEBUG",
+  "logFile": "./logs/debug.log",
   "readonly": "False",
   "runningSpeed": 0.1,
   "X-Plex-Token": "123ABCabc",

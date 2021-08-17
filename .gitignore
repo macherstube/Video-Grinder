@@ -3,6 +3,8 @@ tmp/
 config/*
 !config/example.json
 !config/example_windows.json
+logs/*
+!logs/.gitignore
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
