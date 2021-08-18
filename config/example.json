@@ -1,4 +1,8 @@
 {
+  "fakeFileSystem": {
+    "search": ["D:\\tmp_library\\media","\\"],
+    "replace": ["/var/media", "/"]
+  },
   "logLevel": "DEBUG",
   "logFile": "./logs/debug.log",
   "readonly": "False",
@@ -13,8 +17,10 @@
   "plexServiceStartCommand": "sudo /bin/systemctl start PlexMediaServer",
   "plexServiceStopCommand": "sudo /bin/systemctl stop PlexMediaServer",
   "plexAnalyzeTimeWindow": {"start": [0,0], "end": [23,59]},
-  "targetCodec": "hevc_nvenc",
-  "targetSettings" : "-preset fast -rc vbr -cq 24 -qmin 24 -qmax 24",
+  "targetVideoCodec": "hevc_nvenc",
+  "targetVideoSettings" : "-preset fast -rc vbr -cq 23 -qmin 22 -qmax 24",
+  "targetAudioCodec": "libfdk_aac",
+  "targetAudioSettings" : "-vbr 4",
   "targetContainer": "mkv",
   "transcoderCount": 3,
   "transcoderHWaccel": "cuda",

@@ -64,7 +64,10 @@ class Transcoder:
         # create ffmpeg request
         ff = FFmpeg(
             inputs={str(path): str("-y " + hwaccel)},
-            outputs={str(cachePath): str("-c:v " + self.config["targetCodec"] + " " + self.config["targetSettings"])}
+            outputs={str(cachePath): str("-c:v " + self.config["targetVideoCodec"] + " "
+                                         + self.config["targetVideoSettings"]) + " "
+                                         + "-c:a " + self.config["targetAudioCodec"] + " "
+                                         + self.config["targetAudioSettings"]}
         )
         logging.info("transcoder: Trying to transcode: " + str(path))
         logging.debug("transcoder: " + ff.cmd)
