@@ -44,6 +44,11 @@ class Transcoder:
             return
         # get path of file and check if file exists
         path = Path(file.locations[0])
+        if self.config["fakeFileSystem"]:
+            path = Path(str(path).replace(self.config["fakeFileSystem"]["search"][0],
+                                          self.config["fakeFileSystem"]["replace"][0])
+                        .replace(self.config["fakeFileSystem"]["search"][1],
+                                 self.config["fakeFileSystem"]["replace"][1]))
         if not path.is_file():
             logging.warning("transcoder: No such file or directory: " + str(path))
             self.exit_code = 404
