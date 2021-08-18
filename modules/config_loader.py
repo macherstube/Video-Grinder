@@ -17,7 +17,10 @@ class Cfg:
     def __init__(self, cfg_file):
         self.cfg_file = cfg_file
         self.config = {}
-        self.mandatory = ["MODE"]
+        self.mandatory = ["logLevel", "runningSpeed", "X-Plex-Token", "plexServer", "plexStatsUpdateInterval",
+                          "plexLibraryUpdateInterval", "plexDB", "plexLibrarySections", "plexServiceStartCommand",
+                          "plexServiceStopCommand", "targetCodec", "targetContainer", "transcoderCount",
+                          "transcoderCache", "transcoderReady", "organizerReady"]
         self.init()
 
     def init(self):
@@ -30,5 +33,5 @@ class Cfg:
             raise ValueError("Config file missing or invalid: " + str(path.absolute()))
 
         for m in self.mandatory:
-            if m not in self.config or len(self.config[m]) == 0:
+            if m not in self.config and self.config[m]:
                 raise ValueError("Config file invalid: " + m + " not found or empty in" + str(path.absolute()))

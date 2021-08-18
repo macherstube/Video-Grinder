@@ -1,11 +1,10 @@
 {
-  "MODE": "development",
   "logLevel": "DEBUG",
   "logFile": "./logs/debug.log",
   "readonly": "False",
   "runningSpeed": 0.1,
   "X-Plex-Token": "123ABCabc",
-  "Plex-Server": "http://plexserver:32400",
+  "plexServer": "http://plexserver:32400",
   "plexStatsUpdateInterval": 10,
   "plexLibraryUpdateInterval": 60,
   "plexDB": "C:\\Users\\USERNAME\\AppData\\Local\\Plex Media Server\\Plug-in Support\\Databases\\com.plexapp.plugins.library.db",
@@ -48,6 +47,9 @@
     }
   },
   "organizerReady": {
+    "sys": {
+      "datetime": [{"start": [1,0], "end": [10,0]}, {"start": [11,0], "end": [12,0]}]
+    },
     "plex": {
       "PlayingSessionsCount": ">= 0"
     }

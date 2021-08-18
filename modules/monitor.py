@@ -9,8 +9,9 @@
 ##########################################################
 
 import logging
-from datetime import datetime
+from datetime import datetime, time
 import psutil
+import plexapi
 from plexapi.server import PlexServer
 import math
 from pathlib import Path
@@ -24,6 +25,15 @@ def threaded(fn):
         threading.Thread(target=fn, args=args, kwargs=kwargs).start()
 
     return wrapper
+
+
+def is_time_between(begin_time, end_time, check_time=None):
+    # If check time is not given, default to current UTC time
+    check_time = check_time or datetime.utcnow().time()
+    if begin_time < end_time:
+        return check_time >= begin_time and check_time <= end_time
+    else:  # crosses midnight
+        return check_time >= begin_time or check_time <= end_time
 
 
 def wMean(vs, r=0):
@@ -57,7 +67,7 @@ class Monitor:
         self.update_data()
 
     def setup_plexapi(self):
-        self.plexSrv = PlexServer(self.config["Plex-Server"], self.config["X-Plex-Token"])
+        self.plexSrv = PlexServer(self.config["plexServer"], self.config["X-Plex-Token"])
 
     def destroy_plexapi(self):
         self.plexSrv = None
@@ -126,7 +136,22 @@ class Monitor:
         # loop through the config and crosscheck with current state
         for counter in self.config["organizerReady"]:
             for value in self.config["organizerReady"][counter]:
-                if self.config["organizerReady"][counter][value] != -1:
+                if value == "datetime" and len(self.config["organizerReady"][counter][value]) >= 1:
+                    istime = False
+                    for v in self.config["organizerReady"][counter][value]:
+                        start = v["start"]
+                        end = v["end"]
+                        if is_time_between(time(start[0], start[1]), time(end[0], end[1])):
+                            istime = True
+                    if not istime:
+                        self.failureReason = {
+                            "counter": counter,
+                            "value": value,
+                            "must": self.config["organizerReady"][counter][value],
+                            "is": self.states[counter][value]
+                        }
+                        return False
+                elif self.config["organizerReady"][counter][value] != -1:
                     if not eval("self.states[counter][value]" + self.config["organizerReady"][counter][value]):
                         self.failureReason = {
                             "counter": counter,
@@ -153,7 +178,9 @@ class Monitor:
                     ok = True
                     # loop through all filters and check if they apply to the file
                     for f in self.config["plexLibraryFilesFilter"]:
-                        if not eval("file.media[0]." + f + " " + self.config["plexLibraryFilesFilter"][f]):
+                        if not hasattr(file, 'media') \
+                                or not len(file.media) > 0 \
+                                or not eval("file.media[0]." + f + " " + self.config["plexLibraryFilesFilter"][f]):
                             ok = False
                     if ok:
                         files.append(file)
@@ -212,7 +239,16 @@ class Monitor:
             # get files of everry section
             for s in self.config["plexLibrarySections"]:
                 lib = self.plexSrv.library.section(s)
-                self.plexLibrary["files"] = self.plexLibrary["files"] + lib.all()
+                if isinstance(lib, plexapi.library.MovieSection):
+                    self.plexLibrary["files"] = self.plexLibrary["files"] + lib.searchMovies()
+                elif isinstance(lib, plexapi.library.ShowSection):
+                    self.plexLibrary["files"] = self.plexLibrary["files"] + lib.searchEpisodes()
+                elif isinstance(lib, plexapi.library.MusicSection):
+                    # ignore music
+                    pass
+                elif isinstance(lib, plexapi.library.PhotoSection):
+                    # ignore photos
+                    pass
 
             self.plexLibrary["date"] = now
             # reset failed transcoded files: plex data is quite up to date and therefore stuff could have changed

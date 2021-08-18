@@ -54,7 +54,7 @@ class Organizer:
         self.organizing = False
 
     def setup_plexapi(self):
-        self.plexSrv = PlexServer(self.config["Plex-Server"], self.config["X-Plex-Token"])
+        self.plexSrv = PlexServer(self.config["plexServer"], self.config["X-Plex-Token"])
 
     def destroy_plexapi(self):
         self.plexSrv = None
@@ -124,9 +124,8 @@ class Organizer:
             for f in files:
                 # if file exists on filesystem and in transcoder successfully history
                 if str(f.ratingKey) == Path(tf).parent.name:
-                    if self.config["MODE"] == "development" or self.config["MODE"] == "debug":
-                        logging.info("organizer: move " + tf + " to "
-                                     + str(Path(f.locations[0]).parent.joinpath(Path(tf).name)))
+                    logging.info("organizer: move " + tf + " to "
+                                 + str(Path(f.locations[0]).parent.joinpath(Path(tf).name)))
                     # do only move files if not readonly mode
                     if self.config["readonly"] == "False":
                         self.stopPlex()             # make sure plex service is not running
