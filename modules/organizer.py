@@ -124,32 +124,38 @@ class Organizer:
             for f in files:
                 # if file exists on filesystem and in transcoder successfully history
                 if str(f.ratingKey) == Path(tf).parent.name:
+                    path = Path(f.locations[0])
+                    if "fakeFileSystem" in self.config and len(self.config["fakeFileSystem"]) > 0:
+                        path = Path(str(path).replace(self.config["fakeFileSystem"]["search"][0],
+                                                      self.config["fakeFileSystem"]["replace"][0])
+                                    .replace(self.config["fakeFileSystem"]["search"][1],
+                                             self.config["fakeFileSystem"]["replace"][1]))
                     logging.info("organizer: move " + tf + " to "
-                                 + str(Path(f.locations[0]).parent.joinpath(Path(tf).name)))
+                                 + str(path.parent.joinpath(Path(tf).name)))
                     # do only move files if not readonly mode
                     if self.config["readonly"] == "False":
                         self.stopPlex()             # make sure plex service is not running
                         changedfile = True          # this will cause a db update (commit)
-                        shutil.move(tf, Path(f.locations[0]).parent.joinpath(Path(tf).name))
+                        shutil.move(tf, path.parent.joinpath(Path(tf).name))
                     # if the filepath has changed we need to take care of that within filesystem and plex database
-                    if Path(f.locations[0]).name != Path(tf).name:
+                    if path.name != Path(tf).name:
                         if self.config["readonly"] == "False":
                             self.stopPlex()         # make sure plex service is not running
                             changedfile = True      # this will cause a db update (commit)
 
                             # update filepath in db
                             updateStr = "UPDATE media_parts SET file = \"" \
-                                        + str(Path(f.locations[0]).parent.joinpath(Path(tf).name)) \
+                                        + str(path.parent.joinpath(Path(tf).name)) \
                                         + "\" WHERE media_item_id = " + str(f.ratingKey) + ";"
                             logging.debug("organizer: update db: " + updateStr)
                             dbcur.execute(updateStr)
                             if dbcur.rowcount != 1:
                                 logging.warning("organizer: dbupdate could be invalid, recived " + str(dbcur.rowcount)
                                                 + " and not 1 rowcount for file: " + str(f) + " "
-                                                + str(Path(f.locations[0]).parent.joinpath(Path(tf).name)))
+                                                + str(path.parent.joinpath(Path(tf).name)))
 
                             # mark path to be deleted (that will happen after db commit)
-                            self.deleteQueue.append(f.locations[0])
+                            self.deleteQueue.append(path)
                     self.set_organized_file(f)
             # delete file and folders that were not organized: this will remove old folders and orphan files
             if self.config["readonly"] == "False":

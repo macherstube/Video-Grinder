@@ -44,7 +44,7 @@ class Transcoder:
             return
         # get path of file and check if file exists
         path = Path(file.locations[0])
-        if self.config["fakeFileSystem"]:
+        if "fakeFileSystem" in self.config and len(self.config["fakeFileSystem"]) > 0:
             path = Path(str(path).replace(self.config["fakeFileSystem"]["search"][0],
                                           self.config["fakeFileSystem"]["replace"][0])
                         .replace(self.config["fakeFileSystem"]["search"][1],

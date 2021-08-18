@@ -193,7 +193,8 @@ class Ctrl:
                                 tr.transcode(file)
                         else:
                             if not mo.ready_to_transcode():
-                                logging.info("monitor: transcoder not ready: " + str(mo.failureReason))
+                                if self.get_transcoder():
+                                    logging.info("monitor: not ready to transcode: " + str(mo.failureReason))
                             if len(mo.get_files()) == 0:
                                 logging.info("monitor: no files to transcode.")
                                 # since there are no files left to transcode we go right to organizing state

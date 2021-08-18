@@ -51,7 +51,7 @@ Following functions will be implemented:
 
 - [ ] Prechecks to get an overview over the existing library
 - [x] Conversion of any format that is supported by ffmpeg
-- [ ] Using following format as a target format: mkv, h265, acc, sub
+- [ ] Using following format as a target format: mkv, h265, acc, sub incl. multiple Channels
 - [x] Support NVIDIA hardware acceleration (NVENC, NVDEC)
 - [x] Support Linux and Windows
 - [x] Parameter to schedule/time everything right
@@ -68,6 +68,13 @@ Following functions won't be implemented in the current version:
 
 - AV1 codec support - The reason is that currently there aren't any affordable AV1 hardware encoders on the market.
 - Converting multipart files (f.E. DVD Copies)
+
+## Tipps
+
+- Because of lack of h265 support don't use browser to playback anymore. Have a look at: 
+  - https://knapsu.eu/plex/
+  - https://www.plex.tv/de/media-server-downloads/#plex-app
+  - https://aur.archlinux.org/packages/plex-media-player/
 
 ## References
 
