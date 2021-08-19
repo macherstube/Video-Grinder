@@ -51,7 +51,7 @@ Following functions will be implemented:
 
 - [ ] Prechecks to get an overview over the existing library
 - [x] Conversion of any format that is supported by ffmpeg
-- [ ] Using following format as a target format: mkv, h265, acc, sub incl. multiple Channels
+- [x] Using following format as a target format: mkv, h265, acc, sub incl. multiple Channels
 - [x] Support NVIDIA hardware acceleration (NVENC, NVDEC)
 - [x] Support Linux and Windows
 - [x] Parameter to schedule/time everything right
