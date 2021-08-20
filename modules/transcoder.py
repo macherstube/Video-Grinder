@@ -63,7 +63,7 @@ class Transcoder:
             file.media[0].width
         ]
 
-        csv_logger.__CSV__.log(["transcoder", "transcode", 999, "get file info", "", ""] + fileStats)
+        csv_logger.__CSV__.log(["transcoder", "transcode", 999, "get file info", file.locations[0], ""] + fileStats)
 
         # cannot process files with more than one location
         if len(file.locations) > 1:
