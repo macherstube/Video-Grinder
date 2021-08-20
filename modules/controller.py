@@ -177,16 +177,17 @@ class Ctrl:
 
                     # do only proceed if no organizer is busy
                     if len(self.get_busy_organizers()) == 0:
+                        filesTemp = mo.get_files()
                         logging.debug("monitor: states before transcoding: " + str(mo.get_states()))
-                        logging.debug("monitor: files before transcoding: " + str(mo.get_files()))
+                        # logging.debug("monitor: files before transcoding: " + str(filesTemp))
 
                         # do only proceed if files are in queue and one transcoder is ready
-                        if len(mo.get_files()) > 0 and mo.ready_to_transcode():
+                        if len(filesTemp) > 0 and mo.ready_to_transcode():
                             # get an available transcoder and send task for transcoding
                             tr = self.get_transcoder()
                             if tr:
                                 # get first file in queue
-                                file = mo.get_files()[0]
+                                file = filesTemp[0]
                                 # mark file as being currently transcoded to avoid duplicated jobs
                                 mo.set_current_transcoding(file)
                                 # send transccode job ("Energize" is the keyword)
@@ -195,7 +196,7 @@ class Ctrl:
                             if not mo.ready_to_transcode():
                                 if self.get_transcoder():
                                     logging.info("monitor: not ready to transcode: " + str(mo.failureReason))
-                            if len(mo.get_files()) == 0:
+                            if len(filesTemp) == 0:
                                 logging.info("monitor: no files to transcode.")
                                 # since there are no files left to transcode we go right to organizing state
                                 self.__state = CtrlStates.ORGANIZE

@@ -38,12 +38,12 @@ jobs:
         include:
           - os: windows-latest
             TARGET: windows
-            CMD_BUILD: pyinstaller -F -w -n video-grinder_windows video-grinder.py
+            CMD_BUILD: pyinstaller -F -c -n video-grinder_windows video-grinder.py
             OUT_FILE_NAME: video-grinder_windows.exe
             ASSET_MIME: application/vnd.microsoft.portable-executable
           - os: ubuntu-latest
             TARGET: ubuntu
-            CMD_BUILD: pyinstaller -F -w -n video-grinder_linux video-grinder.py
+            CMD_BUILD: pyinstaller -F -c -n video-grinder_linux video-grinder.py
             OUT_FILE_NAME: video-grinder_linux
             ASSET_MIME: application/x-executable
     steps:

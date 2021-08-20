@@ -56,6 +56,7 @@ class Monitor:
         self.states = {"sys": {}, "plex": {}, "fs": {}, "gpu": {}}
         self.plexLibrary = {"date": 0, "files": []}
         self.plexStats = {"date": 0}
+        self.filesCache = []
         self.currentTranscoding = []
         self.successfullyTranscoded = []
         self.failedToTranscode = []
@@ -167,6 +168,14 @@ class Monitor:
         return self.states
 
     def get_files(self):
+        # check if filesCache is still up to date and skip filtering if so (for performance reasons)
+        now = datetime.timestamp(datetime.now())
+        if len(self.filesCache) > 0 and now < self.plexLibrary["date"] + self.config["plexLibraryUpdateInterval"] - 5:
+            for f in self.currentTranscoding + self.successfullyTranscoded + self.failedToTranscode:
+                if f in self.filesCache:
+                    self.filesCache.remove(f)
+            return self.filesCache
+
         files = []
         for file in self.plexLibrary["files"]:
             # check if file is neither currently transcoding nor already processed
@@ -186,6 +195,7 @@ class Monitor:
                         files.append(file)
                 else:
                     files.append(file)
+        self.filesCache = files
         return files
 
     def sys(self):
