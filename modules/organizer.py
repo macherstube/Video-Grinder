@@ -19,6 +19,8 @@ import threading
 import glob
 import shutil
 
+from modules import csv_logger
+
 
 def threaded(fn):
     def wrapper(*args, **kwargs):
@@ -48,6 +50,7 @@ class Organizer:
         self.setup_plexapi()
         self.organizedFiles = []
         self.deleteQueue = []
+        self.moveQueue = []
         self.plexStatus = 1
         # set readiness to True because all is done
         self.ready = True
@@ -136,7 +139,7 @@ class Organizer:
                     if self.config["readonly"] == "False":
                         self.stopPlex()             # make sure plex service is not running
                         changedfile = True          # this will cause a db update (commit)
-                        shutil.move(tf, path.parent.joinpath(Path(tf).name))
+                        self.moveQueue.append[{"from": tf,"to": path.parent.joinpath(Path(tf).name)}]
                     # if the filepath has changed we need to take care of that within filesystem and plex database
                     if path.name != Path(tf).name:
                         if self.config["readonly"] == "False":
@@ -153,7 +156,11 @@ class Organizer:
                                 logging.warning("organizer: dbupdate could be invalid, recived " + str(dbcur.rowcount)
                                                 + " and not 1 rowcount for file: " + str(f) + " "
                                                 + str(path.parent.joinpath(Path(tf).name)))
-
+                                csv_logger.__CSV__.log(["organizer", "db update", 1, "dbupdate could be invalid",
+                                                        updateStr, str(dbcur.rowcount) + " rows changed."])
+                            else:
+                                csv_logger.__CSV__.log(["organizer", "db update", 0, "successfully updated",
+                                                        updateStr, str(dbcur.rowcount) + " rows changed."])
                             # mark path to be deleted (that will happen after db commit)
                             self.deleteQueue.append(path)
                     self.set_organized_file(f)
@@ -163,14 +170,24 @@ class Organizer:
                 shutil.rmtree(Path(tf).parent)
         if changedfile:
             try:
+                self.stopPlex()  # make sure plex service is not running
                 logging.info("organizer: commit plex db update")
                 self.dbconn.commit()
+                csv_logger.__CSV__.log(["organizer", "db update", 0, "successfully committed", "", ""])
+
+                for f in self.moveQueue:
+                    logging.info("organizer: move file from: " + f["from"] + " to: " + f["to"])
+                    shutil.move(f["from"], f["to"])
+                    self.moveQueue.remove(f)
+                    csv_logger.__CSV__.log(["organizer", "file move", 0, "successfully moved", f["from"], f["to"]])
+
                 for f in self.deleteQueue:
                     logging.info("organizer: delete old file: " + str(f))
                     os.remove(f)
                     self.deleteQueue.remove(f)
+                    csv_logger.__CSV__.log(["organizer", "file delete", 0, "successfully deleted", f, ""])
             except FileNotFoundError as e:
-                logging.warning("organizer: tried to delete file but not existing anymore: " + str(f))
+                logging.warning("organizer: file not existing anymore: " + str(f) + " or " + f["from"])
             except Exception as e:
                 # If something bad happend while commiting db or filesystem we gotta shut down everything
                 # and manually check the logs and do fixing stuff.

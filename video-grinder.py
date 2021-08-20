@@ -23,6 +23,7 @@ try:
     from modules import config_loader
     from modules import sentry
     from modules import controller
+    from modules import csv_logger
 
     # load config: use config path from console parameter or default path
     if len(sys.argv) > 1:
@@ -45,6 +46,15 @@ try:
                         level=eval("logging." + cfg.config["logLevel"]),
                         format='%(asctime)s; %(levelname)s; %(message)s')
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+    # create global CSV Logger
+    csv_logger.__CSV__ = csv_logger.csvLogger(cfg.config["csvLogFile"],
+                                              ["date", "type", "action", "code", "status", "Old", "New", "aspectRatio",
+                                               "audioChannels", "audioCodec", "audioProfile", "bitrate", "container",
+                                               "duration", "has64bitOffsets", "height", "id", "isOptimizedVersion",
+                                               "key", "optimizedForStreaming", "proxyType", "target", "title",
+                                               "videoCodec", "videoFrameRate", "videoProfile",
+                                               "videoResolution", "width"])
 
     # create new instance of controller
     ctrl = controller.Ctrl(cfg.config)

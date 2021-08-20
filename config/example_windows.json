@@ -5,6 +5,7 @@
   },
   "logLevel": "DEBUG",
   "logFile": "./logs/debug.log",
+  "csvLogFile": "./logs/log.csv",
   "readonly": "False",
   "runningSpeed": 2,
   "X-Plex-Token": "123ABCabc",

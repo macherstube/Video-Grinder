@@ -7,13 +7,15 @@
 # date:   16.08.2021
 # desc:   transcodes files using ffmpeg :)
 ##########################################################
-
+import json
 import logging
 import shutil
 import subprocess
 import threading
 from ffmpy import FFmpeg, FFRuntimeError
 from pathlib import Path
+
+from modules import csv_logger
 
 
 def threaded(fn):
@@ -36,10 +38,38 @@ class Transcoder:
         # set readiness to False to avoid conflicts
         self.ready = False
         self.file = file
+
+        fileStats = [
+            file.media[0].aspectRatio,
+            file.media[0].audioChannels,
+            file.media[0].audioCodec,
+            file.media[0].audioProfile,
+            file.media[0].bitrate,
+            file.media[0].container,
+            file.media[0].duration,
+            file.media[0].has64bitOffsets,
+            file.media[0].height,
+            file.media[0].id,
+            file.media[0].isOptimizedVersion,
+            file.media[0].key,
+            file.media[0].optimizedForStreaming,
+            file.media[0].proxyType,
+            file.media[0].target,
+            file.media[0].title,
+            file.media[0].videoCodec,
+            file.media[0].videoFrameRate,
+            file.media[0].videoProfile,
+            file.media[0].videoResolution,
+            file.media[0].width
+        ]
+
+        csv_logger.__CSV__.log(["transcoder", "transcode", 999, "get file info", "", ""] + fileStats)
+
         # cannot process files with more than one location
         if len(file.locations) > 1:
             logging.warning("transcoder: more than one file found - cannot handle that. :-( :" + str(file))
             self.exit_code = 405
+            csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code, "more than one file", str(file), ""])
             self.ready = True
             return
         # get path of file and check if file exists
@@ -52,6 +82,7 @@ class Transcoder:
         if not path.is_file():
             logging.warning("transcoder: No such file or directory: " + str(path))
             self.exit_code = 404
+            csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code, "no such file or directory", str(path), ""])
             self.ready = True
             return
         # get path of cache directory and create if not existing
@@ -69,8 +100,10 @@ class Transcoder:
                                          + "-c:a " + self.config["targetAudioCodec"] + " "
                                          + self.config["targetAudioSettings"]}
         )
-        logging.info("transcoder: Trying to transcode: " + str(path))
+        logging.info("transcoder: Starting transcoding: " + str(path))
         logging.debug("transcoder: " + ff.cmd)
+
+        csv_logger.__CSV__.log(["transcoder", "transcode", 0, "starting transcoding", str(path), str(cachePath)])
 
         successfully = True
         try:
@@ -91,9 +124,13 @@ class Transcoder:
                 if "No such file or directory" in str(ffe.stderr):
                     # not found error
                     self.exit_code = 404
+                    csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code,
+                                    "no such file or directory (FFRuntimeError)", str(path), str(cachePath)])
                 else:
                     # undefined error
                     self.exit_code = 500
+                    csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code,
+                                    "unkown error (FFRuntimeError)", str(path), str(cachePath)])
                 logging.error("transcoder: An FFRuntimeError occurred in: " "{}".format(ffe))
         except KeyboardInterrupt:
             successfully = False
@@ -101,6 +138,8 @@ class Transcoder:
                 if self.config["readonly"] == "False":
                     shutil.rmtree(cachePath.parent)
             self.exit_code = 255
+            csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code,
+                            "keyboardInterupt", str(path), str(cachePath)])
         finally:
             # set readiness to True because all is done
             self.ready = True
@@ -108,3 +147,5 @@ class Transcoder:
         if successfully:
             logging.info("transcoder: Successfully transcoded: " + str(cachePath))
             self.exit_code = 0
+            csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code,
+                            "successfully transcoded", str(path), str(cachePath)])
