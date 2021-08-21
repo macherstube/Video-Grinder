@@ -102,6 +102,8 @@ class Monitor:
         self.successfullyTranscoded.append(file)
 
     def set_current_transcoding(self, file):
+        if len(self.filesCache) > 0 and self.config["simulate"] == "True":
+            del self.filesCache[0]
         self.currentTranscoding.append(file)
 
     def remove_current_transcoding(self, file):
@@ -167,13 +169,9 @@ class Monitor:
     def get_states(self):
         return self.states
 
-    def get_files(self):
-        # check if filesCache is still up to date and skip filtering if so (for performance reasons)
-        now = datetime.timestamp(datetime.now())
-        if len(self.filesCache) > 0 and now < self.plexLibrary["date"] + self.config["plexLibraryUpdateInterval"] - 5:
-            for f in self.currentTranscoding + self.successfullyTranscoded + self.failedToTranscode:
-                if f in self.filesCache:
-                    self.filesCache.remove(f)
+    def get_files(self, last=False):
+        # check if filesCache contains data and simulate is true to skip filtering (for performance reasons)
+        if len(self.filesCache) > 0 and self.config["simulate"] == "True":
             return self.filesCache
 
         files = []
