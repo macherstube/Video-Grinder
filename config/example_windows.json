@@ -15,6 +15,7 @@
   "plexDB": "C:\\Users\\USERNAME\\AppData\\Local\\Plex Media Server\\Plug-in Support\\Databases\\com.plexapp.plugins.library.db",
   "plexLibrarySections": ["Movies", "TV Series"],
   "plexLibraryFilesFilter": {"videoCodec": "!= 'hevc'"},
+  "plexLibraryQueryFilter": {"media__videoCodec__regex": "^((?!hevc).)*$"},
   "plexServiceStartCommand": "net start PlexService",
   "plexServiceStopCommand": "net stop PlexService",
   "plexAnalyzeTimeWindow": {"start": [0,0], "end": [23,59]},
