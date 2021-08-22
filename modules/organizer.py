@@ -133,7 +133,7 @@ class Organizer:
                                                       self.config["fakeFileSystem"]["replace"][0])
                                     .replace(self.config["fakeFileSystem"]["search"][1],
                                              self.config["fakeFileSystem"]["replace"][1]))
-                    logging.info("organizer: move " + str(tf).encode('ascii', 'replace').decode() + " to "
+                    logging.info("organizer: queue move " + str(tf).encode('ascii', 'replace').decode() + " to "
                                  + str(path.parent.joinpath(Path(tf).name)).encode('ascii', 'replace').decode())
                     # do only move files if not readonly mode
                     if self.config["readonly"] == "False":
@@ -150,7 +150,8 @@ class Organizer:
                             updateStr = "UPDATE media_parts SET file = \"" \
                                         + str(path.parent.joinpath(Path(tf).name)) \
                                         + "\" WHERE file = \"" + str(path) + "\";"
-                            logging.debug("organizer: update db: " + str(updateStr).encode('ascii', 'replace').decode())
+                            logging.debug("organizer: queue update db: "
+                                          + str(updateStr).encode('ascii', 'replace').decode())
                             dbcur.execute(updateStr)
                             if dbcur.rowcount != 1:
                                 logging.warning("organizer: dbupdate could be invalid, recived " + str(dbcur.rowcount)
@@ -186,8 +187,10 @@ class Organizer:
                 csv_logger.__CSV__.log(["organizer", "db update", 0, "successfully committed", "", ""])
 
             except FileNotFoundError as e:
-                logging.warning("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode()
+                logging.critical("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode()
                                 + " or " + str(f["from"]).encode('ascii', 'replace').decode())
+                os._exit(1)
+                return
             except Exception as e:
                 # If something bad happend while commiting db or filesystem we gotta shut down everything
                 # and manually check the logs and do fixing stuff.
@@ -209,5 +212,9 @@ class Organizer:
             self.updatePlexLibaray()
             if self.ready_to_analyze():
                 self.analyzePlexLibrary()
+
+        self.moveQueue = []
+        self.deleteQueue = []
+
         logging.info("organizer: end organizing files.")
         self.ready = True
