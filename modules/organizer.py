@@ -56,6 +56,7 @@ class Organizer:
         self.ready = True
         self.organizing = False
 
+
     def setup_plexapi(self):
         self.plexSrv = PlexServer(self.config["plexServer"], self.config["X-Plex-Token"])
 
@@ -67,6 +68,8 @@ class Organizer:
 
     def createTranscoderCache(self):
         Path(self.config["transcoderCache"]).mkdir(parents=True, exist_ok=True)
+        for f in os.listdir(Path(self.config["transcoderCache"])):
+            shutil.rmtree(os.path.join(Path(self.config["transcoderCache"]), f))
 
     def stopPlex(self):
         if self.plexStatus == 1:
@@ -173,13 +176,15 @@ class Organizer:
                     logging.info("organizer: move file from: " + str(f["from"]).encode('ascii', 'replace').decode()
                                  + " to: " + str(f["to"]).encode('ascii', 'replace').decode())
                     shutil.move(f["from"], f["to"])
-                    self.moveQueue.remove(f)
                     csv_logger.__CSV__.log(["organizer", "file move", 0, "successfully moved", f["from"], f["to"]])
+                    # delete file and folders that were not organized: this will remove old folders and orphan files
+                    logging.info(
+                        "organizer: delete orphan files and folder: " + str(f["from"]).encode('ascii', 'replace').decode())
+                    shutil.rmtree(Path(f["from"]).parent)
 
                 for f in self.deleteQueue:
                     logging.info("organizer: delete old file: " + str(f).encode('ascii', 'replace').decode())
                     os.remove(f)
-                    self.deleteQueue.remove(f)
                     csv_logger.__CSV__.log(["organizer", "file delete", 0, "successfully deleted", f, ""])
 
                 logging.info("organizer: commit plex db update")
@@ -199,10 +204,6 @@ class Organizer:
                 os._exit(1)
                 return
 
-            # delete file and folders that were not organized: this will remove old folders and orphan files
-            if self.config["readonly"] == "False":
-                logging.info("organizer: delete orphan files and folder: " + str(tf).encode('ascii', 'replace').decode())
-                shutil.rmtree(Path(tf).parent)
         self.dbconn.close()
 
         self.startPlex()                    # make sure plex starts again
