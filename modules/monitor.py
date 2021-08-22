@@ -56,10 +56,7 @@ class Monitor:
         self.states = {"sys": {}, "plex": {}, "fs": {}, "gpu": {}}
         self.plexLibrary = {"date": 0, "files": []}
         self.plexStats = {"date": 0}
-        self.filesCache = []
-        self.currentTranscoding = []
-        self.successfullyTranscoded = []
-        self.failedToTranscode = []
+        self.history = {"current":[], "success":[], "failure":[], "all":[]}
         self.failureReason = {}
         self.ready = False
         self.sleeping = False
@@ -96,19 +93,20 @@ class Monitor:
         self.ready = True
 
     def set_failed_to_transcode(self, file):
-        self.failedToTranscode.append(file)
+        self.history["failure"].append(file.ratingKey)
 
     def set_successfully_transcoded(self, file):
-        self.successfullyTranscoded.append(file)
+        self.history["success"].append(file.ratingKey)
+
+    def get_successfully_transcoded(self):
+        return self.history["success"]
 
     def set_current_transcoding(self, file):
-        if len(self.filesCache) > 0 and self.config["simulate"] == "True":
-            del self.filesCache[0]
-        self.currentTranscoding.append(file)
+        self.history["current"].append(file.ratingKey)
 
     def remove_current_transcoding(self, file):
         try:
-            self.currentTranscoding.remove(file)
+            self.history["current"].remove(file.ratingKey)
         except ValueError as e:
             logging.warning("monitor: tried to remove file from current transcoding but this failed: " + str(file))
             pass
@@ -169,17 +167,11 @@ class Monitor:
     def get_states(self):
         return self.states
 
-    def get_files(self, last=False):
-        # check if filesCache contains data and simulate is true to skip filtering (for performance reasons)
-        if len(self.filesCache) > 0 and self.config["simulate"] == "True":
-            return self.filesCache
-
-        files = []
+    def get_file(self):
+        self.history["all"] = self.history["current"] + self.history["success"] + self.history["failure"]
         for file in self.plexLibrary["files"]:
             # check if file is neither currently transcoding nor already processed
-            if file not in self.currentTranscoding \
-                    and file not in self.successfullyTranscoded \
-                    and file not in self.failedToTranscode:
+            if len(self.history["all"]) == 0 or file.ratingKey not in self.history["all"]:
                 # check if a filter is configured
                 if len(self.config["plexLibraryFilesFilter"]) != 0:
                     ok = True
@@ -190,11 +182,10 @@ class Monitor:
                                 or not eval("file.media[0]." + f + " " + self.config["plexLibraryFilesFilter"][f]):
                             ok = False
                     if ok:
-                        files.append(file)
+                        return file
                 else:
-                    files.append(file)
-        self.filesCache = files
-        return files
+                    return file
+        return False
 
     def sys(self):
         # ready system parameters
@@ -260,5 +251,5 @@ class Monitor:
 
             self.plexLibrary["date"] = now
             # reset failed transcoded files: plex data is quite up to date and therefore stuff could have changed
-            self.failedToTranscode = []
+            self.history["failure"] = []
             logging.info("monitor: library update ended")

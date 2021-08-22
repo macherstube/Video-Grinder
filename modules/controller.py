@@ -177,17 +177,16 @@ class Ctrl:
 
                     # do only proceed if no organizer is busy
                     if len(self.get_busy_organizers()) == 0:
-                        filesTemp = mo.get_files()
+                        file = mo.get_file()
+
                         logging.debug("monitor: states before transcoding: " + str(mo.get_states()))
-                        # logging.debug("monitor: files before transcoding: " + str(filesTemp))
+                        # logging.debug("monitor: file before transcoding: " + str(file))
 
                         # do only proceed if files are in queue and one transcoder is ready
-                        if len(filesTemp) > 0 and mo.ready_to_transcode():
+                        if file and mo.ready_to_transcode():
                             # get an available transcoder and send task for transcoding
                             tr = self.get_transcoder()
                             if tr:
-                                # get first file in queue
-                                file = filesTemp[0]
                                 # mark file as being currently transcoded to avoid duplicated jobs
                                 mo.set_current_transcoding(file)
                                 # send transccode job ("Energize" is the keyword)
@@ -196,7 +195,7 @@ class Ctrl:
                             if not mo.ready_to_transcode():
                                 if self.get_transcoder():
                                     logging.info("monitor: not ready to transcode: " + str(mo.failureReason))
-                            if len(filesTemp) == 0:
+                            if not file:
                                 logging.info("monitor: no files to transcode.")
                                 # since there are no files left to transcode we go right to organizing state
                                 self.__state = CtrlStates.ORGANIZE
@@ -220,7 +219,7 @@ class Ctrl:
                     if len(self.get_busy_transcoders()) == 0:
                         # if monitor indicated readiness for organizing, start organizing
                         if mo.ready_to_organize():
-                            org.organize(mo.successfullyTranscoded)
+                            org.organize(mo.get_successfully_transcoded())
                         else:
                             logging.info("organizer: not ready: " + str(mo.failureReason))
                 # Next step: go to idle state, read: begin from start

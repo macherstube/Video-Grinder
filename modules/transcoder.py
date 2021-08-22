@@ -67,7 +67,8 @@ class Transcoder:
 
         # cannot process files with more than one location
         if len(file.locations) > 1:
-            logging.warning("transcoder: more than one file found - cannot handle that. :-( :" + str(file))
+            logging.warning("transcoder: more than one file found - cannot handle that. :-( :"
+                            + str(file).encode('ascii', 'replace').decode())
             self.exit_code = 405
             csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code, "more than one file", str(file), ""])
             self.ready = True
@@ -80,7 +81,7 @@ class Transcoder:
                         .replace(self.config["fakeFileSystem"]["search"][1],
                                  self.config["fakeFileSystem"]["replace"][1]))
         if not path.is_file():
-            logging.warning("transcoder: No such file or directory: " + str(path))
+            logging.warning("transcoder: No such file or directory: " + str(path).encode('ascii', 'replace').decode())
             self.exit_code = 404
             csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code, "no such file or directory", str(path), ""])
             self.ready = True
@@ -100,7 +101,7 @@ class Transcoder:
                                          + "-c:a " + self.config["targetAudioCodec"] + " "
                                          + self.config["targetAudioSettings"]}
         )
-        logging.info("transcoder: Starting transcoding: " + str(path))
+        logging.info("transcoder: Starting transcoding: " + str(path).encode('ascii', 'replace').decode())
         logging.debug("transcoder: " + ff.cmd)
 
         csv_logger.__CSV__.log(["transcoder", "transcode", 0, "starting transcoding", str(path), str(cachePath)])
@@ -145,7 +146,7 @@ class Transcoder:
             self.ready = True
 
         if successfully:
-            logging.info("transcoder: Successfully transcoded: " + str(cachePath))
+            logging.info("transcoder: Successfully transcoded: " + str(cachePath).encode('ascii', 'replace').decode())
             self.exit_code = 0
             csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code,
                             "successfully transcoded", str(path), str(cachePath)])
