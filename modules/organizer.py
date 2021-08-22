@@ -133,13 +133,13 @@ class Organizer:
                                                       self.config["fakeFileSystem"]["replace"][0])
                                     .replace(self.config["fakeFileSystem"]["search"][1],
                                              self.config["fakeFileSystem"]["replace"][1]))
-                    logging.info("organizer: move " + tf + " to "
-                                 + str(path.parent.joinpath(Path(tf).name)))
+                    logging.info("organizer: move " + str(tf).encode('ascii', 'replace').decode() + " to "
+                                 + str(path.parent.joinpath(Path(tf).name)).encode('ascii', 'replace').decode())
                     # do only move files if not readonly mode
                     if self.config["readonly"] == "False":
                         self.stopPlex()             # make sure plex service is not running
                         changedfile = True          # this will cause a db update (commit)
-                        self.moveQueue.append[{"from": tf,"to": path.parent.joinpath(Path(tf).name)}]
+                        self.moveQueue.append({"from": tf,"to": path.parent.joinpath(Path(tf).name)})
                     # if the filepath has changed we need to take care of that within filesystem and plex database
                     if path.name != Path(tf).name:
                         if self.config["readonly"] == "False":
@@ -149,13 +149,13 @@ class Organizer:
                             # update filepath in db
                             updateStr = "UPDATE media_parts SET file = \"" \
                                         + str(path.parent.joinpath(Path(tf).name)) \
-                                        + "\" WHERE media_item_id = " + str(f.ratingKey) + ";"
-                            logging.debug("organizer: update db: " + updateStr)
+                                        + "\" WHERE file = \"" + str(path) + "\";"
+                            logging.debug("organizer: update db: " + str(updateStr).encode('ascii', 'replace').decode())
                             dbcur.execute(updateStr)
                             if dbcur.rowcount != 1:
                                 logging.warning("organizer: dbupdate could be invalid, recived " + str(dbcur.rowcount)
-                                                + " and not 1 rowcount for file: " + str(f) + " "
-                                                + str(path.parent.joinpath(Path(tf).name)))
+                                                + " and not 1 rowcount for file: " + str(f).encode('ascii', 'replace').decode() + " "
+                                                + str(path.parent.joinpath(Path(tf).name)).encode('ascii', 'replace').decode())
                                 csv_logger.__CSV__.log(["organizer", "db update", 1, "dbupdate could be invalid",
                                                         updateStr, str(dbcur.rowcount) + " rows changed."])
                             else:
@@ -164,30 +164,30 @@ class Organizer:
                             # mark path to be deleted (that will happen after db commit)
                             self.deleteQueue.append(path)
                     self.set_organized_file(f)
-            # delete file and folders that were not organized: this will remove old folders and orphan files
-            if self.config["readonly"] == "False":
-                logging.info("organizer: delete orphan files and folder: " + tf)
-                shutil.rmtree(Path(tf).parent)
         if changedfile:
             try:
                 self.stopPlex()  # make sure plex service is not running
-                logging.info("organizer: commit plex db update")
-                self.dbconn.commit()
-                csv_logger.__CSV__.log(["organizer", "db update", 0, "successfully committed", "", ""])
 
                 for f in self.moveQueue:
-                    logging.info("organizer: move file from: " + f["from"] + " to: " + f["to"])
+                    logging.info("organizer: move file from: " + str(f["from"]).encode('ascii', 'replace').decode()
+                                 + " to: " + str(f["to"]).encode('ascii', 'replace').decode())
                     shutil.move(f["from"], f["to"])
                     self.moveQueue.remove(f)
                     csv_logger.__CSV__.log(["organizer", "file move", 0, "successfully moved", f["from"], f["to"]])
 
                 for f in self.deleteQueue:
-                    logging.info("organizer: delete old file: " + str(f))
+                    logging.info("organizer: delete old file: " + str(f).encode('ascii', 'replace').decode())
                     os.remove(f)
                     self.deleteQueue.remove(f)
                     csv_logger.__CSV__.log(["organizer", "file delete", 0, "successfully deleted", f, ""])
+
+                logging.info("organizer: commit plex db update")
+                self.dbconn.commit()
+                csv_logger.__CSV__.log(["organizer", "db update", 0, "successfully committed", "", ""])
+
             except FileNotFoundError as e:
-                logging.warning("organizer: file not existing anymore: " + str(f) + " or " + f["from"])
+                logging.warning("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode()
+                                + " or " + str(f["from"]).encode('ascii', 'replace').decode())
             except Exception as e:
                 # If something bad happend while commiting db or filesystem we gotta shut down everything
                 # and manually check the logs and do fixing stuff.
@@ -195,6 +195,11 @@ class Organizer:
                 logging.critical("organizer: we have a problem - like really.!: " + str(e) + " " + e.characters_written)
                 os._exit(1)
                 return
+
+            # delete file and folders that were not organized: this will remove old folders and orphan files
+            if self.config["readonly"] == "False":
+                logging.info("organizer: delete orphan files and folder: " + str(tf).encode('ascii', 'replace').decode())
+                shutil.rmtree(Path(tf).parent)
         self.dbconn.close()
 
         self.startPlex()                    # make sure plex starts again

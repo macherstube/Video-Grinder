@@ -57,6 +57,7 @@ class Monitor:
         self.plexLibrary = {"date": 0, "files": []}
         self.plexStats = {"date": 0}
         self.history = {"current":[], "success":[], "failure":[], "all":[]}
+        self.successfullyTranscoded = []
         self.failureReason = {}
         self.ready = False
         self.sleeping = False
@@ -97,9 +98,10 @@ class Monitor:
 
     def set_successfully_transcoded(self, file):
         self.history["success"].append(file.ratingKey)
+        self.successfullyTranscoded.append(file)
 
     def get_successfully_transcoded(self):
-        return self.history["success"]
+        return self.successfullyTranscoded
 
     def set_current_transcoding(self, file):
         self.history["current"].append(file.ratingKey)
@@ -108,7 +110,8 @@ class Monitor:
         try:
             self.history["current"].remove(file.ratingKey)
         except ValueError as e:
-            logging.warning("monitor: tried to remove file from current transcoding but this failed: " + str(file))
+            logging.warning("monitor: tried to remove file from current transcoding but this failed: "
+                            + str(file).encode('ascii', 'replace').decode())
             pass
 
     def queue_full(self):
