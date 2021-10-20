@@ -96,7 +96,7 @@ class Transcoder:
         # create ffmpeg request
         ff = FFmpeg(
             inputs={str(path): str("-y " + hwaccel)},
-            outputs={str(cachePath): str(+ self.config["targetGlobalSettings"] + " "
+            outputs={str(cachePath): str(self.config["targetGlobalSettings"] + " "
                                          + "-c:v " + self.config["targetVideoCodec"] + " "
                                          + self.config["targetVideoSettings"]) + " "
                                          + "-c:a " + self.config["targetAudioCodec"] + " "
