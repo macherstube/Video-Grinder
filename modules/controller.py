@@ -159,7 +159,7 @@ class Ctrl:
                     for tr in self.transcoders:
                         # something unexpected happened while transcoding
                         # -> remove_x will keep the file for transcoding in queue and causes another transcoding
-                        if tr.exit_code not in [-1, 0, 404, 405, 999] and tr.file is not None:
+                        if tr.exit_code not in [-1, 0, 404, 405, 500, 999] and tr.file is not None:
                             mo.remove_current_transcoding(tr.file)
                             tr.exit_code = 999
                         # last transcoding was successfully
@@ -170,7 +170,7 @@ class Ctrl:
                             tr.exit_code = 999
                         # last transcoding was not successfully
                         # -> remove_x and set_x will remove the file from transcoder queue
-                        elif tr.exit_code in [404, 405] and tr.file is not None:
+                        elif tr.exit_code in [404, 405, 500] and tr.file is not None:
                             mo.remove_current_transcoding(tr.file)
                             mo.set_failed_to_transcode(tr.file)
                             tr.exit_code = 999
