@@ -151,6 +151,6 @@ class Transcoder:
 
         if successfully:
             logging.info("transcoder: Successfully transcoded: " + str(cachePath).encode('ascii', 'replace').decode())
-            self.exit_code = 0
+            self.exit_code = 1
             csv_logger.__CSV__.log(["transcoder", "transcode", self.exit_code,
                             "successfully transcoded", str(path), str(cachePath)])

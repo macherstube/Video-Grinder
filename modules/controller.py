@@ -164,7 +164,7 @@ class Ctrl:
                             tr.exit_code = 999
                         # last transcoding was successfully
                         # -> remove_x and set_x will remove the file from transcoder queue and add it to organizer queue
-                        elif tr.exit_code == 0 and tr.file is not None:
+                        elif tr.exit_code in [0, 1] and tr.file is not None:
                             mo.remove_current_transcoding(tr.file)
                             mo.set_successfully_transcoded(tr.file)
                             tr.exit_code = 999
