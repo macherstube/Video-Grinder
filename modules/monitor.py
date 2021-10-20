@@ -213,8 +213,11 @@ class Monitor:
 
     def fs(self):
         # read filesystem parameters
-        self.states["fs"]["transcoderCacheSize"] = sum(
-            f.stat().st_size for f in Path(self.config["transcoderCache"]).glob('**/*') if f.is_file())
+        try:
+            self.states["fs"]["transcoderCacheSize"] = sum(
+                f.stat().st_size for f in Path(self.config["transcoderCache"]).glob('**/*') if f.is_file())
+        except FileNotFoundError:
+            self.states["fs"]["transcoderCacheSize"] = 0
         self.states["fs"]["transcoderCacheDiskTotal"], \
         self.states["fs"]["transcoderCacheDiskUsed"], \
         self.states["fs"]["transcoderCacheDiskFree"], = shutil.disk_usage(self.config["transcoderCache"])
