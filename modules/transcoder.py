@@ -96,10 +96,14 @@ class Transcoder:
         # create ffmpeg request
         ff = FFmpeg(
             inputs={str(path): str("-y " + hwaccel)},
-            outputs={str(cachePath): str("-c:v " + self.config["targetVideoCodec"] + " "
+            outputs={str(cachePath): str(+ self.config["targetGlobalSettings"] + " "
+                                         + "-c:v " + self.config["targetVideoCodec"] + " "
                                          + self.config["targetVideoSettings"]) + " "
                                          + "-c:a " + self.config["targetAudioCodec"] + " "
-                                         + self.config["targetAudioSettings"]}
+                                         + self.config["targetAudioSettings"]
+                                         + "-c:s " + self.config["targetSubtitleCodec"] + " "
+                                         + self.config["targetSubtitleSettings"]
+                     }
         )
         logging.info("transcoder: Starting transcoding: " + str(path).encode('ascii', 'replace').decode())
         logging.debug("transcoder: " + ff.cmd)

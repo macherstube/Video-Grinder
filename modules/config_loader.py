@@ -19,9 +19,9 @@ class Cfg:
         self.config = {}
         self.mandatory = ["logLevel", "runningSpeed", "X-Plex-Token", "plexServer", "plexStatsUpdateInterval",
                           "plexLibraryUpdateInterval", "plexDB", "plexLibrarySections", "plexServiceStartCommand",
-                          "plexServiceStopCommand", "targetVideoCodec", "targetAudioCodec", "targetContainer",
-                          "transcoderCount", "transcoderCache", "transcoderReady", "organizerReady",
-                          "plexLibraryQueryFilter"]
+                          "plexServiceStopCommand", "targetGlobalSettings", "targetVideoCodec", "targetAudioCodec",
+                          "targetSubtitleCodec", "targetSubtitleSettings", "targetContainer", "transcoderCount",
+                          "transcoderCache", "transcoderReady", "organizerReady", "plexLibraryQueryFilter"]
         self.init()
 
     def init(self):
