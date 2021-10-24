@@ -145,7 +145,8 @@ class Monitor:
                     for v in self.config["organizerReady"][counter][value]:
                         start = v["start"]
                         end = v["end"]
-                        if is_time_between(time(start[0], start[1]), time(end[0], end[1])):
+                        if is_time_between(time(start[0], start[1]), time(end[0], end[1]),
+                                           self.states[counter][value]):
                             istime = True
                     if not istime:
                         self.failureReason = {
