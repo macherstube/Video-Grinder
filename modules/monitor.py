@@ -195,7 +195,7 @@ class Monitor:
         # ready system parameters
         self.states["sys"]["cpu"] = psutil.cpu_percent()
         self.states["sys"]["memory"] = psutil.virtual_memory().percent
-        self.states["sys"]["datetime"] = datetime.now()
+        self.states["sys"]["datetime"] = datetime.time()
 
     def plex(self):
         # read plex parameters: do only update these values after specific delay (defined in config)

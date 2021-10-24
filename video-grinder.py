@@ -43,13 +43,13 @@ try:
     cfg = config_loader.Cfg(config_file)
 
     # setup logging to file and console
-    logging.basicConfig(filename=cfg.config["logFile"].replace("_{datetime}", datetime.now().strftime("%Y%m%d-%H%M%S")),
+    logging.basicConfig(filename=cfg.config["logFile"].replace("{datetime}", datetime.now().strftime("%Y%m%d-%H%M%S")),
                         level=eval("logging." + cfg.config["logLevel"]),
                         format='%(asctime)s; %(levelname)s; %(message)s')
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
     # create global CSV Logger
-    csv_logger.__CSV__ = csv_logger.csvLogger(cfg.config["csvLogFile"].replace("_{datetime}", datetime.now().strftime("%Y%m%d-%H%M%S")),
+    csv_logger.__CSV__ = csv_logger.csvLogger(cfg.config["csvLogFile"].replace("{datetime}", datetime.now().strftime("%Y%m%d-%H%M%S")),
                                               ["date", "type", "action", "code", "status", "Old", "New", "aspectRatio",
                                                "audioChannels", "audioCodec", "audioProfile", "bitrate", "container",
                                                "duration", "has64bitOffsets", "height", "id", "isOptimizedVersion",
