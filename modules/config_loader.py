@@ -21,7 +21,8 @@ class Cfg:
                           "plexLibraryUpdateInterval", "plexDB", "plexLibrarySections", "plexServiceStartCommand",
                           "plexServiceStopCommand", "targetGlobalSettings", "targetVideoCodec", "targetAudioCodec",
                           "targetSubtitleCodec", "targetSubtitleSettings", "targetContainer", "transcoderCount",
-                          "transcoderCache", "transcoderReady", "organizerReady", "plexLibraryQueryFilter"]
+                          "transcoderCache", "transcoderReady", "organizerReady", "plexLibraryQueryFilter",
+                          "plexLibrarySort"]
         self.init()
 
     def init(self):

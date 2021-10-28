@@ -16,6 +16,7 @@
   "plexLibrarySections": ["Movies", "TV Series"],
   "plexLibraryFilesFilter": {"videoCodec": "!= 'hevc'"},
   "plexLibraryQueryFilter": {"media__videoCodec__regex": "^((?!hevc).)*$"},
+  "plexLibrarySort": {"movies": "titleSort", "shows": "titleSort"},
   "plexServiceStartCommand": "sudo /bin/systemctl start PlexMediaServer",
   "plexServiceStopCommand": "sudo /bin/systemctl stop PlexMediaServer",
   "plexAnalyzeTimeWindow": {"start": [0,0], "end": [23,59]},

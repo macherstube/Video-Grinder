@@ -248,15 +248,17 @@ class Monitor:
                 if isinstance(lib, plexapi.library.MovieSection):
                     if len(self.config["plexLibraryQueryFilter"]) != 0:
                         self.plexLibrary["files"] = self.plexLibrary["files"] \
-                                                    + lib.searchMovies(**self.config["plexLibraryQueryFilter"])
+                                                    + lib.searchMovies(sort=self.config["plexLibrarySort"]["movies"],
+                                                                       **self.config["plexLibraryQueryFilter"])
                     else:
-                        self.plexLibrary["files"] = self.plexLibrary["files"] + lib.searchMovies()
+                        self.plexLibrary["files"] = self.plexLibrary["files"] + lib.searchMovies(sort=self.config["plexLibrarySort"]["movies"])
                 elif isinstance(lib, plexapi.library.ShowSection):
                     if len(self.config["plexLibraryQueryFilter"]) != 0:
                         self.plexLibrary["files"] = self.plexLibrary["files"] \
-                                                    + lib.searchEpisodes(**self.config["plexLibraryQueryFilter"])
+                                                    + lib.searchEpisodes(sort=self.config["plexLibrarySort"]["shows"],
+                                                                         **self.config["plexLibraryQueryFilter"])
                     else:
-                        self.plexLibrary["files"] = self.plexLibrary["files"] + lib.searchEpisodes()
+                        self.plexLibrary["files"] = self.plexLibrary["files"] + lib.searchEpisodes(sort=self.config["plexLibrarySort"]["shows"])
                 elif isinstance(lib, plexapi.library.MusicSection):
                     # ignore music
                     pass
