@@ -152,7 +152,8 @@ class Organizer:
                             # update filepath in db
                             updateStr = "UPDATE media_parts SET file = \"" \
                                         + str(path.parent.joinpath(Path(tf).name)) \
-                                        + "\" WHERE file = \"" + str(path) + "\";"
+                                        + "\" WHERE file = \"" + str(path) + "\" "\
+                                        + "OR file = \"" + str(path).replace("\\", "/") + "\";"
                             logging.debug("organizer: queue update db: "
                                           + str(updateStr).encode('ascii', 'replace').decode())
                             dbcur.execute(updateStr)
