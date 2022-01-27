@@ -51,7 +51,8 @@ def wMean(vs, r=0):
 
 class Monitor:
 
-    def __init__(self, config):
+    def __init__(self, parent, config):
+        self.ctrl = parent
         self.config = config
         self.states = {"sys": {}, "plex": {}, "fs": {}, "gpu": {}}
         self.plexLibrary = {"date": 0, "files": []}
@@ -222,6 +223,9 @@ class Monitor:
             self.states["plex"]["hostMemoryUtilization"] = wMean([r.hostMemoryUtilization for r in resources])
             self.states["plex"]["processCpuUtilization"] = wMean([r.processCpuUtilization for r in resources])
             self.states["plex"]["processMemoryUtilization"] = wMean([r.processMemoryUtilization for r in resources])
+            self.states["plex"]["TranscodeSessionsDelta"] = self.config["transcoderCount"] - \
+                                                            len(self.ctrl.get_busy_transcoders()) - \
+                                                            len(self.plexSrv.transcodeSessions())
             self.plexStats["date"] = now
 
     def fs(self):

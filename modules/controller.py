@@ -37,7 +37,7 @@ class Ctrl:
 
     def add_monitor(self):
         self.addingInProgress["monitors"] = True
-        self.monitors.append(monitor.Monitor(self.config))
+        self.monitors.append(monitor.Monitor(self, self.config))
         self.addingInProgress["monitors"] = False
         logging.info("monitor: created")
 
