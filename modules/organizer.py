@@ -61,6 +61,7 @@ class Organizer:
     def setup_plexapi(self):
         try:
             self.plexSrv = PlexServer(self.config["plexServer"], self.config["X-Plex-Token"])
+            return True
         except Exception as e:
             logging.critical("monitor: connecting to plex not possible: " + str(e))
             self.zombie = True
