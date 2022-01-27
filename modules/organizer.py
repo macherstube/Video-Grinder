@@ -4,7 +4,7 @@
 ##########################################################
 # title:  organizer.py
 # author: Josias Bruderer
-# date:   16.08.2021
+# date:   27.01.2022
 # desc:   organize transcoded and current media
 ##########################################################
 
@@ -43,22 +43,28 @@ class Organizer:
     def __init__(self, config):
         # set readiness to False to avoid conflicts
         self.ready = False
+        self.zombie = False
         self.config = config
         self.createTranscoderCache()
         self.plexSrv = None
         self.dbconn = None
-        self.setup_plexapi()
         self.organizedFiles = []
         self.deleteQueue = []
         self.moveQueue = []
-        self.plexStatus = 1
-        # set readiness to True because all is done
-        self.ready = True
+        if self.setup_plexapi():
+            self.plexStatus = 1
+            # set readiness to True because all is done
+            self.ready = True
         self.organizing = False
 
 
     def setup_plexapi(self):
-        self.plexSrv = PlexServer(self.config["plexServer"], self.config["X-Plex-Token"])
+        try:
+            self.plexSrv = PlexServer(self.config["plexServer"], self.config["X-Plex-Token"])
+        except Exception as e:
+            logging.critical("monitor: connecting to plex not possible: " + str(e))
+            self.zombie = True
+            return False
 
     def destroy_plexapi(self):
         self.plexSrv = None
@@ -193,9 +199,8 @@ class Organizer:
                 csv_logger.__CSV__.log(["organizer", "db update", 0, "successfully committed", "", ""])
 
             except FileNotFoundError as e:
-                logging.critical("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode()
+                logging.warning("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode()
                                 + " or " + str(f["from"]).encode('ascii', 'replace').decode())
-                os._exit(1)
                 return
             except Exception as e:
                 # If something bad happend while commiting db or filesystem we gotta shut down everything

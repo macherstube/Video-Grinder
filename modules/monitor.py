@@ -4,7 +4,7 @@
 ##########################################################
 # title:  monitor.py
 # author: Josias Bruderer
-# date:   17.08.2021
+# date:   27.01.2022
 # desc:   monitors the whole operation :)
 ##########################################################
 
@@ -60,13 +60,19 @@ class Monitor:
         self.successfullyTranscoded = []
         self.failureReason = {}
         self.ready = False
+        self.zombie = False
         self.sleeping = False
         self.plexSrv = None
-        self.setup_plexapi()
-        self.update_data()
+        if self.setup_plexapi():
+            self.update_data()
 
     def setup_plexapi(self):
-        self.plexSrv = PlexServer(self.config["plexServer"], self.config["X-Plex-Token"])
+        try:
+            self.plexSrv = PlexServer(self.config["plexServer"], self.config["X-Plex-Token"])
+        except Exception as e:
+            logging.critical("monitor: connecting to plex not possible: " + str(e))
+            self.zombie = True
+            return False
 
     def destroy_plexapi(self):
         self.plexSrv = None

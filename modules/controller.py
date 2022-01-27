@@ -4,7 +4,7 @@
 ##########################################################
 # title:  controller.py
 # author: Josias Bruderer
-# date:   17.08.2021
+# date:   27.01.2022
 # desc:   controls the whole operation :)
 ##########################################################
 
@@ -42,6 +42,7 @@ class Ctrl:
         logging.info("monitor: created")
 
     def get_monitor(self):
+        self.monitors = [mo for mo in self.monitors if mo.zombie is False]
         for mo in self.monitors:
             if mo.ready:
                 return mo
@@ -49,6 +50,7 @@ class Ctrl:
 
     def get_monitors(self):
         mos = []
+        self.monitors = [mo for mo in self.monitors if mo.zombie is False]
         for mo in self.monitors:
             if mo.ready:
                 mos.append(mo)
@@ -56,6 +58,7 @@ class Ctrl:
 
     def get_sleeping_monitors(self):
         mos = []
+        self.monitors = [mo for mo in self.monitors if mo.zombie is False]
         for mo in self.monitors:
             if mo.sleeping:
                 mos.append(mo)
@@ -87,6 +90,7 @@ class Ctrl:
         logging.info("organizer: created")
 
     def get_organizer(self):
+        self.organizers = [org for org in self.organizers if org.zombie is False]
         for org in self.organizers:
             if org.ready:
                 return org
@@ -94,6 +98,7 @@ class Ctrl:
 
     def get_busy_organizers(self):
         orga = []
+        self.organizers = [org for org in self.organizers if org.zombie is False]
         for org in self.organizers:
             if not org.ready:
                 orga.append(org)
