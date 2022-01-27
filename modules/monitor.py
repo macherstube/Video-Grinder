@@ -92,13 +92,18 @@ class Monitor:
     def update_data(self):
         # set readiness to False to avoid conflicts
         self.ready = False
-        self.sys()
-        self.plex()
-        self.fs()
-        self.gpu()
-        self.plexlibrary()
-        # set readiness to True because all is done
-        self.ready = True
+        try:
+            self.sys()
+            self.plex()
+            self.fs()
+            self.gpu()
+            self.plexlibrary()
+            # set readiness to True because all is done
+            self.ready = True
+        except Exception as e:
+            logging.critical("monitor: error while updating: " + str(e))
+            self.zombie = True
+            return False
 
     def set_failed_to_transcode(self, file):
         self.history["failure"].append(file.ratingKey)
