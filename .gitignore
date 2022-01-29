@@ -3,6 +3,7 @@ tmp/
 config/*
 !config/example.json
 !config/example_windows.json
+!config/organizer_veto.txt
 logs/*
 !logs/.gitignore
 

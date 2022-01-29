@@ -54,7 +54,7 @@ class Monitor:
     def __init__(self, parent, config):
         self.ctrl = parent
         self.config = config
-        self.states = {"sys": {}, "plex": {}, "fs": {}, "gpu": {}}
+        self.states = {"sys": {}, "plex": {}, "fs": {}, "gpu": {}, "veto": {}}
         self.plexLibrary = {"date": 0, "files": []}
         self.plexStats = {"date": 0}
         self.history = {"current":[], "success":[], "failure":[], "all":[]}
@@ -99,12 +99,16 @@ class Monitor:
             self.fs()
             self.gpu()
             self.plexlibrary()
+            self.veto()
             # set readiness to True because all is done
             self.ready = True
         except Exception as e:
             logging.critical("monitor: error while updating: " + str(e))
             self.zombie = True
             return False
+
+    def get_veto_organize(self):
+        return self.states["veto"]["organizer"]
 
     def set_failed_to_transcode(self, file):
         self.history["failure"].append(file.ratingKey)
@@ -251,6 +255,19 @@ class Monitor:
             self.states["gpu"]["load"] = 0
             self.states["gpu"]["memoryUtil"] = 0
             self.states["gpu"]["temperature"] = 0
+
+    def veto(self):
+        if Path(self.config["organizerVetoFile"]).is_file():
+            with open(self.config["organizerVetoFile"], 'r') as f:
+                veto = f.read()
+                if veto == "true":
+                    self.states["veto"]["organizer"] = True
+                elif veto == "false":
+                    self.states["veto"]["organizer"] = False
+                else:
+                    self.states["veto"]["organizer"] = -1
+        else:
+            self.states["veto"]["organizer"] = -1
 
     def plexlibrary(self):
         # update local copy of plexlibrary after specific delay (defined in config)

@@ -32,7 +32,8 @@ class Ctrl:
         self.transcoders = []
         self.organizers = []
         self.runningSpeed = self.config["runningSpeed"]
-        self.addingInProgress = {"monitors": False, "transcoders": False, "organizers": False}
+        self.addingInProgress = {"monitors": False, "transcoders": False,
+                                 "organizers": False}
         self.__state = CtrlStates.IDLE
         logging.info("controller: initialized")
 
@@ -145,7 +146,8 @@ class Ctrl:
                     self.add_monitor()
 
                 # check if enough transcoders exist (you can define the number of transcoders in config)
-                if len(self.transcoders) < self.config["transcoderCount"] and not self.addingInProgress["transcoders"]:
+                if len(self.transcoders) < self.config["transcoderCount"] and not \
+                self.addingInProgress["transcoders"]:
                     self.add_transcoder()
 
                 # make sure that one organizer exists (you should use only 1 monitor)
@@ -165,7 +167,8 @@ class Ctrl:
                     for tr in self.transcoders:
                         # something unexpected happened while transcoding
                         # -> remove_x will keep the file for transcoding in queue and causes another transcoding
-                        if tr.exit_code not in [-1, 0, 1, 404, 405, 500, 999] and tr.file is not None:
+                        if tr.exit_code not in [-1, 0, 1, 404, 405, 500,
+                                                999] and tr.file is not None:
                             mo.remove_current_transcoding(tr.file)
                             tr.exit_code = 999
                         # last transcoding was successfully
@@ -185,7 +188,8 @@ class Ctrl:
                     if len(self.get_busy_organizers()) == 0:
                         file = mo.get_file()
 
-                        logging.debug("monitor: states before transcoding: " + str(mo.get_states()))
+                        logging.debug(
+                            "monitor: states before transcoding: " + str(mo.get_states()))
                         # logging.debug("monitor: file before transcoding: " + str(file))
 
                         # do only proceed if files are in queue and one transcoder is ready
@@ -200,7 +204,9 @@ class Ctrl:
                         else:
                             if not mo.ready_to_transcode():
                                 if self.get_transcoder():
-                                    logging.info("monitor: not ready to transcode: " + str(mo.failureReason))
+                                    logging.info(
+                                        "monitor: not ready to transcode: " + str(
+                                            mo.failureReason))
                             if not file:
                                 logging.info("monitor: no files to transcode.")
                                 # since there are no files left to transcode we go right to organizing state
@@ -223,8 +229,11 @@ class Ctrl:
                 if org and mo:
                     # do only organize when nothing is being transcoded
                     if len(self.get_busy_transcoders()) == 0:
+                        logging.info("organizer veto: " + str(mo.get_veto_organize()))
                         # if monitor indicated readiness for organizing, start organizing
-                        if mo.ready_to_organize():
+                        if (mo.get_veto_organize() is not False) & \
+                                ((mo.get_veto_organize() is True) |
+                                 (mo.get_veto_organize() == -1 & mo.ready_to_organize() is True)):
                             mailer.__MAIL__.send("Video-Grinder: Organizer starts",
                                                  "We just let you know that organizer is starting. Following files are queued:\n\n" +
                                                  str(mo.get_successfully_transcoded()))

@@ -22,7 +22,7 @@ class Cfg:
                           "plexServiceStopCommand", "targetGlobalSettings", "targetVideoCodec", "targetAudioCodec",
                           "targetSubtitleCodec", "targetSubtitleSettings", "targetContainer", "transcoderCount",
                           "transcoderCache", "transcoderReady", "organizerReady", "plexLibraryQueryFilter",
-                          "plexLibrarySort", "smtp"]
+                          "plexLibrarySort", "smtp", "organizerVetoFile"]
         self.init()
 
     def init(self):
