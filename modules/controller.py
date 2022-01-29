@@ -4,7 +4,7 @@
 ##########################################################
 # title:  controller.py
 # author: Josias Bruderer
-# date:   27.01.2022
+# date:   29.01.2022
 # desc:   controls the whole operation :)
 ##########################################################
 
@@ -13,6 +13,7 @@ import time
 from modules import monitor
 from modules import transcoder
 from modules import organizer
+from modules import mailer
 from enum import Enum, auto
 
 
@@ -224,7 +225,12 @@ class Ctrl:
                     if len(self.get_busy_transcoders()) == 0:
                         # if monitor indicated readiness for organizing, start organizing
                         if mo.ready_to_organize():
+                            mailer.__MAIL__.send("Video-Grinder: Organizer starts",
+                                                 "We just let you know that organizer is starting. Following files are queued:\n\n" +
+                                                 str(mo.get_successfully_transcoded()))
                             org.organize(mo.get_successfully_transcoded())
+                            mailer.__MAIL__.send("Video-Grinder: Organizer ends",
+                                                 "We just let you know that organizer has ended.")
                         else:
                             logging.info("organizer: not ready: " + str(mo.failureReason))
                 # Next step: go to idle state, read: begin from start

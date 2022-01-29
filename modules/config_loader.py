@@ -4,7 +4,7 @@
 ##########################################################
 # title:  config_loader.py
 # author: Josias Bruderer
-# date:   13.08.2021
+# date:   29.01.2022
 # desc:   loading config from a json file
 ##########################################################
 
@@ -22,7 +22,7 @@ class Cfg:
                           "plexServiceStopCommand", "targetGlobalSettings", "targetVideoCodec", "targetAudioCodec",
                           "targetSubtitleCodec", "targetSubtitleSettings", "targetContainer", "transcoderCount",
                           "transcoderCache", "transcoderReady", "organizerReady", "plexLibraryQueryFilter",
-                          "plexLibrarySort"]
+                          "plexLibrarySort", "smtp"]
         self.init()
 
     def init(self):

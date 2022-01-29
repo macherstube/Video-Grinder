@@ -4,7 +4,7 @@
 ###################################################################
 # title:  Video-Grinder
 # author: Josias Bruderer
-# date:   17.08.2021
+# date:   29.01.2022
 # desc:   Grinds Videos to different format  in a Plex Environment
 ###################################################################
 
@@ -25,6 +25,7 @@ try:
     from modules import sentry
     from modules import controller
     from modules import csv_logger
+    from modules import mailer
 
     # load config: use config path from console parameter or default path
     if len(sys.argv) > 1:
@@ -56,6 +57,9 @@ try:
                                                "key", "optimizedForStreaming", "proxyType", "target", "title",
                                                "videoCodec", "videoFrameRate", "videoProfile",
                                                "videoResolution", "width"])
+
+    # create global mailer
+    mailer.__MAIL__ = mailer.Mailer(cfg.config["smtp"])
 
     # create new instance of controller
     ctrl = controller.Ctrl(cfg.config)

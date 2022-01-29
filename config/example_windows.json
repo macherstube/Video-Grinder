@@ -20,6 +20,13 @@
   "plexServiceStartCommand": "net start PlexService",
   "plexServiceStopCommand": "net stop PlexService",
   "plexAnalyzeTimeWindow": {"start": [0,0], "end": [23,59]},
+  "smtp": {
+    "hostname": "",
+    "port": 465,
+    "username": "sender@domain.tld",
+    "password": "secret",
+    "receiver": "receiver@domain.tld"
+  },
   "targetGlobalSettings": "-map 0",
   "targetVideoCodec": "hevc_nvenc",
   "targetVideoSettings" : "-preset medium -rc vbr -cq 23 -qmin 22 -qmax 24",
