@@ -120,6 +120,9 @@ class Monitor:
     def get_successfully_transcoded(self):
         return self.successfullyTranscoded
 
+    def clean_successfully_transcoded(self):
+        self.successfullyTranscoded = []
+
     def set_current_transcoding(self, file):
         self.history["current"].append(file.ratingKey)
 
@@ -259,7 +262,7 @@ class Monitor:
     def veto(self):
         if Path(self.config["organizerVetoFile"]).is_file():
             with open(self.config["organizerVetoFile"], 'r') as f:
-                veto = f.read()
+                veto = str(f.read()).lower()
                 if veto == "true":
                     self.states["veto"]["organizer"] = True
                 elif veto == "false":

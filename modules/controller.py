@@ -231,15 +231,17 @@ class Ctrl:
                     if len(self.get_busy_transcoders()) == 0:
                         logging.info("organizer veto: " + str(mo.get_veto_organize()))
                         # if monitor indicated readiness for organizing, start organizing
-                        if (mo.get_veto_organize() is not False) & \
-                                ((mo.get_veto_organize() is True) |
-                                 (mo.get_veto_organize() == -1 & mo.ready_to_organize() is True)):
+                        ready = False
+                        if mo.get_veto_organize() is not False:
+                            if mo.get_veto_organize() is True:
+                                ready = True
+                            elif mo.ready_to_organize() is True:
+                                ready = True
+
+                        if ready:
                             mailer.__MAIL__.send("Video-Grinder: Organizer starts",
-                                                 "We just let you know that organizer is starting. Following files are queued:\n\n" +
-                                                 str(mo.get_successfully_transcoded()))
+                                                 "We just let you know that organizer is starting.")
                             org.organize(mo.get_successfully_transcoded())
-                            mailer.__MAIL__.send("Video-Grinder: Organizer ends",
-                                                 "We just let you know that organizer has ended.")
                         else:
                             logging.info("organizer: not ready: " + str(mo.failureReason))
                 # Next step: go to idle state, read: begin from start
