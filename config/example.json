@@ -16,7 +16,7 @@
   "plexDB": "/home/USERNAME/Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db",
   "plexLibrarySections": ["Movies", "TV Series"],
   "plexLibraryFilesFilter": {"videoCodec": "!= 'hevc'"},
-  "plexLibraryQueryFilter": {"media__videoCodec__regex": "^((?!hevc).)*$"},
+  "plexLibraryQueryFilter": {"media__videoCodec__regex": "^((?!hevc)(?!vp9).)*$"},
   "plexLibrarySort": {"movies": "titleSort", "shows": "titleSort"},
   "plexServiceStartCommand": "sudo /bin/systemctl start PlexMediaServer",
   "plexServiceStopCommand": "sudo /bin/systemctl stop PlexMediaServer",
