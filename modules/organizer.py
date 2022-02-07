@@ -192,7 +192,11 @@ class Organizer:
 
                 for f in self.deleteQueue:
                     logging.info("organizer: delete old file: " + str(f).encode('ascii', 'replace').decode())
-                    os.remove(f)
+                    try:
+                        os.remove(f)
+                    except FileNotFoundError as e:
+                        logging.warning("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode())
+                        return
                     csv_logger.__CSV__.log(["organizer", "file delete", 0, "successfully deleted", f, ""])
 
                 logging.info("organizer: commit plex db update")
@@ -200,8 +204,7 @@ class Organizer:
                 csv_logger.__CSV__.log(["organizer", "db update", 0, "successfully committed", "", ""])
 
             except FileNotFoundError as e:
-                logging.warning("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode()
-                                + " or " + str(f["from"]).encode('ascii', 'replace').decode())
+                logging.warning("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode())
                 return
             except Exception as e:
                 # If something bad happend while commiting db or filesystem we gotta shut down everything
