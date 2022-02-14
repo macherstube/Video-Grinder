@@ -193,10 +193,12 @@ class Organizer:
                 for f in self.deleteQueue:
                     logging.info("organizer: delete old file: " + str(f).encode('ascii', 'replace').decode())
                     try:
-                        os.remove(f)
+                        if os.path.exists(f):
+                            os.remove(f)
+                        else:
+                            logging.warning("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode())
                     except FileNotFoundError as e:
                         logging.warning("organizer: file not existing anymore: " + str(f).encode('ascii', 'replace').decode())
-                        return
                     csv_logger.__CSV__.log(["organizer", "file delete", 0, "successfully deleted", f, ""])
 
                 logging.info("organizer: commit plex db update")
