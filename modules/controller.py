@@ -239,9 +239,12 @@ class Ctrl:
                                 ready = True
 
                         if ready:
-                            mailer.__MAIL__.send("Video-Grinder: Organizer starts",
-                                                 "We just let you know that organizer is starting.")
-                            org.organize(mo.get_successfully_transcoded())
+                            if org.transcodedFiles():
+                                mailer.__MAIL__.send("Video-Grinder: Organizer starts",
+                                                     "We just let you know that organizer is starting.")
+                                org.organize(mo.get_successfully_transcoded())
+                            else:
+                                logging.info("organizer: nothing to organize")
                         else:
                             logging.info("organizer: not ready: " + str(mo.failureReason))
                 # Next step: go to idle state, read: begin from start
