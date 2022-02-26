@@ -144,7 +144,23 @@ class Monitor:
         # loop through the config and crosscheck with current state
         for counter in self.config["transcoderReady"]:
             for value in self.config["transcoderReady"][counter]:
-                if self.config["transcoderReady"][counter][value] != -1:
+                if value == "datetime" and len(self.config["transcoderReady"][counter][value]) >= 1:
+                    istime = False
+                    for v in self.config["transcoderReady"][counter][value]:
+                        start = v["start"]
+                        end = v["end"]
+                        if is_time_between(time(start[0], start[1]), time(end[0], end[1]),
+                                           self.states[counter][value]):
+                            istime = True
+                    if not istime:
+                        self.failureReason = {
+                            "counter": counter,
+                            "value": value,
+                            "must": self.config["transcoderReady"][counter][value],
+                            "is": self.states[counter][value]
+                        }
+                        return False
+                elif self.config["transcoderReady"][counter][value] != -1:
                     if not eval("self.states[counter][value]" + self.config["transcoderReady"][counter][value]):
                         self.failureReason = {
                             "counter": counter,
